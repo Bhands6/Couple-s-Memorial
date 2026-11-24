@@ -176,7 +176,7 @@
     $$('[data-start-date]').forEach(el => (el.textContent = ds));
     const now = new Date();
     $$('[data-today]').forEach(el => (el.textContent = `${now.getFullYear()} 年 ${now.getMonth() + 1} 月 ${now.getDate()} 日`));
-    document.title = `${CONFIG.nameA} & ${CONFIG.nameB} · 我们的小宇宙`;
+    document.title = `${CONFIG.nameA} & ${CONFIG.nameB} · 爱的空间`;
   }
 
   /* ---------- 恋爱计时器 ---------- */
