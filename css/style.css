@@ -1483,6 +1483,49 @@ body.locked { overflow: hidden; }
   transition: opacity 0.8s ease var(--d, 0s), transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) var(--d, 0s);
 }
 .photo-cube-stage.show .pc-photo { opacity: 1; transform: none; }
+/* 合成后外层稍微透明，露出内部的小方块；悬停时恢复清晰 */
+.photo-cube-stage.assembled .pc-photo {
+  opacity: 0.7;
+  transition: opacity 0.35s ease, transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.photo-cube-stage.assembled:hover .pc-photo { opacity: 0.95; }
+
+/* 内层小方块 */
+.pc-inner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--cube-size) * 0.46);
+  height: calc(var(--cube-size) * 0.46);
+  margin-left: calc(var(--cube-size) * -0.23);
+  margin-top: calc(var(--cube-size) * -0.23);
+  transform-style: preserve-3d;
+  animation: pcInnerSpin 12s linear infinite;
+  opacity: 0;
+  transition: opacity 0.7s ease;
+  pointer-events: none;
+}
+.photo-cube-stage.assembled .pc-inner { opacity: 1; }
+@keyframes pcInnerSpin {
+  from { transform: rotateX(0deg) rotateZ(0deg); }
+  to { transform: rotateX(360deg) rotateZ(360deg); }
+}
+.pc-inner-face {
+  --isz: calc(var(--cube-size) * 0.23);
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: 1px solid rgba(255, 107, 157, 0.5);
+  box-shadow: 0 0 14px rgba(255, 107, 157, 0.25);
+}
+.pc-inner-face:nth-child(1) { transform: translateZ(var(--isz)); }
+.pc-inner-face:nth-child(2) { transform: rotateY(180deg) translateZ(var(--isz)); }
+.pc-inner-face:nth-child(3) { transform: rotateX(90deg) translateZ(var(--isz)); }
+.pc-inner-face:nth-child(4) { transform: rotateX(-90deg) translateZ(var(--isz)); }
+.pc-inner-face:nth-child(5) { transform: rotateY(-90deg) translateZ(var(--isz)); }
+.pc-inner-face:nth-child(6) { transform: rotateY(90deg) translateZ(var(--isz)); }
 .pc-photo::after {
   content: '';
   position: absolute;

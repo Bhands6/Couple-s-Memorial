@@ -487,6 +487,19 @@
       face.appendChild(photo);
       cube.appendChild(face);
     });
+
+    // 内层小方块：同样的六张照片，独立自转
+    const inner = document.createElement('div');
+    inner.className = 'pc-inner';
+    CONFIG.photos.forEach(p => {
+      const face = document.createElement('div');
+      face.className = 'pc-inner-face';
+      face.style.backgroundImage = p.src
+        ? `url("${p.src}")`
+        : (p.gradient || 'linear-gradient(135deg,#ff9a9e,#fad0c4)');
+      inner.appendChild(face);
+    });
+    cube.appendChild(inner);
   }
 
   function initPhotoCube() {
