@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OUR FOREVER STORY — 我们的恋爱纪念</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        roseGold: '#ECC5C0',
+                        deepNight: '#0B0C10',
+                        romanticPink: '#FF758C',
+                        glowViolet: '#8A2387',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        serif: ['Georgia', 'serif']
+                    },
+                    keyframes: {
+                        pulseGlow: {
+                            '0%, 100%': { transform: 'scale(1)', opacity: '0.8', filter: 'drop-shadow(0 0 15px rgba(255, 117, 140, 0.6))' },
+                            '50%': { transform: 'scale(1.05)', opacity: '1', filter: 'drop-shadow(0 0 25px rgba(255, 117, 140, 0.9))' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        shimmer: {
+                            '100%': { transform: 'translateX(100%)' }
+                        }
+                    },
+                    animation: {
+                        pulseGlow: 'pulseGlow 3s infinite ease-in-out',
+                        float: 'float 4s ease-in-out infinite',
+                        shimmer: 'shimmer 2s infinite'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        /* 玻璃拟态基础样式 */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .glass-card-hover:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 117, 140, 0.3);
+            box-shadow: 0 12px 40px 0 rgba(255, 117, 140, 0.2);
+        }
+        
+        /* 3D 翻转卡片 */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* 隐藏滚动条 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* 心电图 SVG 动效 */
+        .ecg-line {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: dash 3s linear infinite;
+        }
+        @keyframes dash {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-deepNight text-slate-100 overflow-x-hidden select-none font-sans min-h-screen">
+
+    <!-- 动态 Canvas 背景（夜空、流星、粒子跟随） -->
+    <canvas id="skyCanvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
+    
+    <!-- 粒子跟随 Canvas -->
+    <canvas id="trailCanvas" class="fixed inset-0 pointer-events-none z-10"></canvas>
+
+    <!-- ==================== 1. 开场新奇解密入口 (Lock Screen) ==================== -->
+    <div id="unlockOverlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-2xl transition-opacity duration-1000">
+        <div class="text-center px-4 max-w-md">
+            <div class="relative mb-8 inline-block">
+                <div class="absolute -inset-4 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full blur-xl opacity-50 animate-pulse"></div>
+                <div class="relative w-24 h-24 rounded-full bg-slate-900 border border-white/20 flex items-center justify-center mx-auto shadow-2xl">
+                    <i class="fa-solid fa-heart text-4xl text-pink-500 animate-pulse"></i>
+                </div>
+            </div>
+            
+            <h1 class="text-2xl md:text-3xl font-light tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-pink-200 via-rose-300 to-purple-200 mb-2">
+                心跳同频 · 开启回忆
+            </h1>
+            <p class="text-xs md:text-sm text-slate-400 mb-10 tracking-wider">长按下方按钮 3 秒 融合心率密钥</p>
+
+            <!-- 长按解锁交互按钮 -->
+            <div class="relative w-28 h-28 mx-auto flex items-center justify-center">
+                <!-- 进度环 SVG -->
+                <svg class="absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="44" stroke="currentColor" stroke-width="4" class="text-white/10" fill="none"/>
+                    <circle id="progressCircle" cx="50" cy="50" r="44" stroke="url(#pinkGradient)" stroke-width="6" fill="none"
+                            stroke-dasharray="276.46" stroke-dashoffset="276.46" stroke-linecap="round" class="transition-all ease-linear duration-75"/>
+                    <defs>
+                        <linearGradient id="pinkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#FF758C" />
+                            <stop offset="100%" stop-color="#FF7EB3" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+
+                <button id="unlockBtn" class="relative z-10 w-20 h-20 rounded-full bg-gradient-to-br from-pink-500/20 to-purple-600/20 border border-pink-500/40 hover:border-pink-500/80 active:scale-95 transition-all duration-300 flex flex-col items-center justify-center cursor-pointer shadow-lg group">
+                    <i class="fa-solid fa-fingerprint text-3xl text-pink-400 group-hover:scale-110 transition-transform"></i>
+                    <span id="btnText" class="text-[10px] text-pink-300/80 mt-1">按住解锁</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 主内容区域（解锁后显示） ==================== -->
+    <main id="mainContent" class="relative z-20 opacity-0 transition-opacity duration-1000 min-h-screen pb-20">
+        
+        <!-- 顶栏/悬浮控制工具栏 -->
+        <header class="fixed top-4 right-4 left-4 z-40 max-w-6xl mx-auto flex justify-between items-center px-4 py-3 rounded-full glass-card">
+            <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                <span class="text-xs tracking-wider text-rose-200 font-medium">ALWAYS & FOREVER</span>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <!-- 背景音乐开关 -->
+                <button id="musicToggle" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-rose-300 hover:bg-white/10 transition">
+                    <i class="fa-solid fa-music text-sm"></i>
+                </button>
+                <!-- 心电图开关组件 -->
+                <div class="hidden sm:flex items-center space-x-2 px-3 py-1 rounded-full bg-white/5 border border-white/10">
+                    <svg class="w-12 h-4 text-pink-400" viewBox="0 0 100 20">
+                        <path class="ecg-line" d="M 0 10 L 20 10 L 25 3 L 30 17 L 35 5 L 40 12 L 45 10 L 100 10" fill="none" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <span id="bpmDisplay" class="text-xs text-pink-300 font-mono">114 BPM</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Banner Hero 区 -->
+        <section class="pt-32 pb-16 px-4 text-center max-w-4xl mx-auto flex flex-col items-center">
+            
+            <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full glass-card text-xs text-rose-200 mb-6 border border-pink-500/20">
+                <i class="fa-solid fa-sparkles text-pink-400"></i>
+                <span>我们的独家记忆星空</span>
+            </div>
+
+            <!-- 主标题与情侣名字 -->
+            <h1 class="text-4xl md:text-6xl font-light tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-rose-200 via-pink-300 to-purple-200 mb-6">
+                Alex <i class="fa-solid fa-heart text-pink-500 text-3xl mx-2 animate-pulse"></i> Taylor
+            </h1>
+            
+            <p class="text-slate-400 max-w-md text-sm md:text-base font-light leading-relaxed mb-12">
+                “从相遇的那一刻起，宇宙间所有的星光都落进了你我的眼里。”
+            </p>
+
+            <!-- 动态计时器组件 -->
+            <div class="w-full max-w-3xl glass-card rounded-3xl p-6 md:p-8 relative overflow-hidden border border-pink-500/20 shadow-2xl mb-12">
+                <div class="absolute -top-24 -left-24 w-48 h-48 bg-pink-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                
+                <h2 class="text-xs uppercase tracking-widest text-slate-400 mb-6">我们已经相爱了</h2>
+                
+                <!-- 计时器卡片网格 -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 text-center">
+                    <div class="glass-card p-4 rounded-2xl flex flex-col items-center justify-center border border-white/5">
+                        <span id="timerDays" class="text-3xl md:text-5xl font-extralight text-pink-300 font-mono">000</span>
+                        <span class="text-[11px] text-slate-400 mt-2">天 DAYS</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl flex flex-col items-center justify-center border border-white/5">
+                        <span id="timerHours" class="text-3xl md:text-5xl font-extralight text-rose-200 font-mono">00</span>
+                        <span class="text-[11px] text-slate-400 mt-2">小时 HOURS</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl flex flex-col items-center justify-center border border-white/5">
+                        <span id="timerMinutes" class="text-3xl md:text-5xl font-extralight text-purple-300 font-mono">00</span>
+                        <span class="text-[11px] text-slate-400 mt-2">分钟 MINUTES</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl flex flex-col items-center justify-center border border-white/5 relative overflow-hidden">
+                        <span id="timerSeconds" class="text-3xl md:text-5xl font-extralight text-pink-400 font-mono">00</span>
+                        <span class="text-[11px] text-slate-400 mt-2">秒 SECONDS</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 互动操作按钮组 -->
+            <div class="flex flex-wrap items-center justify-center gap-4">
+                <button id="confettiBtn" class="px-6 py-3 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-medium text-sm shadow-lg shadow-pink-500/30 hover:shadow-pink-500/50 hover:scale-105 active:scale-95 transition-all duration-300 flex items-center space-x-2 cursor-pointer">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>发射爱意礼花</span>
+                </button>
+                <button id="capsuleBtn" class="px-6 py-3 rounded-full glass-card text-rose-200 border border-white/10 hover:border-pink-500/40 text-sm hover:scale-105 active:scale-95 transition-all duration-300 flex items-center space-x-2 cursor-pointer">
+                    <i class="fa-solid fa-capsules text-pink-400"></i>
+                    <span>开启情话胶囊</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ==================== 2. 回忆时光轴 (Timeline) ==================== -->
+        <section class="max-w-4xl mx-auto px-4 py-16">
+            <div class="text-center mb-16">
+                <h3 class="text-2xl md:text-3xl font-light text-rose-200 tracking-wider mb-2">我们的故事轨迹</h3>
+                <p class="text-xs text-slate-400">点击卡片翻转，探索未完待续的细节</p>
+            </div>
+
+            <div class="relative border-l border-white/10 ml-4 md:ml-1/2 space-y-12">
+                
+                <!-- 时间轴节点 1 -->
+                <div class="timeline-item relative pl-8 md:pl-0 opacity-0 translate-y-8 transition-all duration-700 ease-out">
+                    <div class="absolute left-[-9px] top-1.5 w-4 h-4 rounded-full bg-pink-500 border-4 border-deepNight shadow-lg shadow-pink-500"></div>
+                    
+                    <div class="md:w-1/2 md:pr-12 md:text-right md:ml-auto">
+                        <div class="perspective-1000">
+                            <div class="card-inner glass-card glass-card-hover rounded-2xl p-6 cursor-pointer transform-style-3d relative">
+                                <!-- 正面 -->
+                                <div class="card-front">
+                                    <span class="text-xs text-pink-400 font-mono">2023.05.20</span>
+                                    <h4 class="text-lg font-medium text-slate-100 mt-1 mb-2">初次相遇的下午</h4>
+                                    <p class="text-xs text-slate-400 leading-relaxed">阳光打在咖啡馆的玻璃上，你笑起来的样子，比夏天的冰汽水还要甜。</p>
+                                    <div class="mt-4 text-[10px] text-slate-500 flex items-center justify-end space-x-1">
+                                        <span>点击翻转</span>
+                                        <i class="fa-solid fa-rotate text-pink-400"></i>
+                                    </div>
+                                </div>
+                                <!-- 背面 -->
+                                <div class="card-back absolute inset-0 glass-card rounded-2xl p-6 rotate-y-180 backface-hidden bg-slate-900/90 flex flex-col justify-center items-center text-center border border-pink-500/30">
+                                    <i class="fa-solid fa-mug-hot text-2xl text-pink-400 mb-2"></i>
+                                    <p class="text-xs text-rose-100 font-light leading-relaxed">“那天我其实偷偷喝了两杯咖啡，只是为了能多在你面前坐一会儿。”</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 时间轴节点 2 -->
+                <div class="timeline-item relative pl-8 md:pl-0 opacity-0 translate-y-8 transition-all duration-700 ease-out">
+                    <div class="absolute left-[-9px] top-1.5 w-4 h-4 rounded-full bg-purple-500 border-4 border-deepNight shadow-lg shadow-purple-500"></div>
+                    
+                    <div class="md:w-1/2 md:pl-12">
+                        <div class="perspective-1000">
+                            <div class="card-inner glass-card glass-card-hover rounded-2xl p-6 cursor-pointer transform-style-3d relative">
+                                <div class="card-front">
+                                    <span class="text-xs text-purple-400 font-mono">2023.08.14</span>
+                                    <h4 class="text-lg font-medium text-slate-100 mt-1 mb-2">第一次看海与告白</h4>
+                                    <p class="text-xs text-slate-400 leading-relaxed">夜海的风很凉，但握着你的手却很暖。海浪声成了我们爱情的最美背景音。</p>
+                                    <div class="mt-4 text-[10px] text-slate-500 flex items-center space-x-1">
+                                        <i class="fa-solid fa-rotate text-purple-400"></i>
+                                        <span>点击翻转</span>
+                                    </div>
+                                </div>
+                                <div class="card-back absolute inset-0 glass-card rounded-2xl p-6 rotate-y-180 backface-hidden bg-slate-900/90 flex flex-col justify-center items-center text-center border border-purple-500/30">
+                                    <i class="fa-solid fa-water text-2xl text-purple-400 mb-2"></i>
+                                    <p class="text-xs text-purple-100 font-light leading-relaxed">“海浪退去时，我在沙滩上写下了你的名字，也被我偷偷刻进了心里。”</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 时间轴节点 3 (隐藏刮刮乐区) -->
+                <div class="timeline-item relative pl-8 md:pl-0 opacity-0 translate-y-8 transition-all duration-700 ease-out">
+                    <div class="absolute left-[-9px] top-1.5 w-4 h-4 rounded-full bg-rose-400 border-4 border-deepNight shadow-lg shadow-rose-400"></div>
+                    
+                    <div class="md:w-1/2 md:pr-12 md:text-right md:ml-auto">
+                        <div class="glass-card rounded-2xl p-6 border border-pink-500/20">
+                            <span class="text-xs text-rose-400 font-mono">SECRET MEMORY</span>
+                            <h4 class="text-lg font-medium text-slate-100 mt-1 mb-2">刮开解锁私密隐藏真心话</h4>
+                            
+                            <!-- Canvas 刮刮乐区域 -->
+                            <div class="relative w-full h-32 rounded-xl overflow-hidden mt-3 border border-white/10 flex items-center justify-center bg-gradient-to-br from-pink-950/40 to-purple-950/40">
+                                <p class="text-xs md:text-sm text-pink-200 px-4 text-center select-none">
+                                    “无论未来去向何方，你都是我绝无仅有的优先选择。” ❤️
+                                </p>
+                                <!-- 涂层 Canvas -->
+                                <canvas id="scratchCanvas" class="absolute inset-0 w-full h-full cursor-pointer z-10"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 页脚 -->
+        <footer class="mt-20 text-center text-xs text-slate-500">
+            <p class="mb-2">Crafted with ❤️ for Us</p>
+            <p>© 2023 - <span id="currentYear"></span> FOREVER LOVE</p>
+        </footer>
+
+    </main>
+
+    <!-- ==================== 扭蛋情话弹窗 Modal ==================== -->
+    <div id="capsuleModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="glass-card max-w-sm w-full p-8 rounded-3xl text-center border border-pink-500/30 shadow-2xl transform scale-95 transition-transform duration-300" id="modalBox">
+            <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-pink-500 to-purple-500 flex items-center justify-center mx-auto mb-4 animate-bounce">
+                <i class="fa-solid fa-heart text-2xl text-white"></i>
+            </div>
+            <h3 class="text-lg font-medium text-pink-200 mb-3">今日份浪漫胶囊</h3>
+            <p id="capsuleText" class="text-sm text-slate-300 font-light leading-relaxed min-h-[4rem] flex items-center justify-center">
+                加载中...
+            </p>
+            <button id="closeCapsule" class="mt-6 px-6 py-2 rounded-full bg-white/10 hover:bg-white/20 text-xs text-slate-200 transition border border-white/10">
+                收下这份美好
+            </button>
+        </div>
+    </div>
+
+    <!-- Web Audio API & Logic JavaScript -->
+    <script>
+        // ==================== 恋爱起始时间配置 (在此修改) ====================
+        const LOVE_START_DATE = new Date('2023-05-20T13:14:00'); // 格式: YYYY-MM-DDTHH:mm:ss
+
+        // 随机情话库
+        const LOVE_QUOTES = [
+            "四季更迭，唯有对你的喜欢经久不衰。",
+            "世界上有千千万万种落日，而你是我唯一的晚霞。",
+            "遇你之前，我随遇而安；遇你之后，我此生定居。",
+            "我想和你一起，走过岁月的长河，看尽繁华落尽后的平淡。",
+            "你是我在深夜漫漫星河里，捕捉到的最亮那一颗。",
+            "爱不是彼此凝视，而是两个人看向同一个方向。",
+            "只要你在身边，连空气都带有一丝玫瑰的清香。"
+        ];
+
+        // ==================== 1. 夜空 Canvas 动画与流星 ====================
+        const skyCanvas = document.getElementById('skyCanvas');
+        const ctx = skyCanvas.getContext('2d');
+        let width, height;
+        let stars = [];
+        let meteors = [];
+
+        function resizeCanvas() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            skyCanvas.width = width;
+            skyCanvas.height = height;
+            initStars();
+        }
+
+        function initStars() {
+            stars = [];
+            const count = Math.floor((width * height) / 3000);
+            for (let i = 0; i < count; i++) {
+                stars.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    radius: Math.random() * 1.5,
+                    alpha: Math.random(),
+                    speed: 0.005 + Math.random() * 0.015
+                });
+            }
+        }
+
+        function createMeteor() {
+            if (Math.random() < 0.03 && meteors.length < 3) {
+                meteors.push({
+                    x: Math.random() * width,
+                    y: Math.random() * (height / 2),
+                    length: 80 + Math.random() * 60,
+                    speed: 4 + Math.random() * 4,
+                    alpha: 1,
+                    angle: Math.PI / 4
+                });
+            }
+        }
+
+        function drawSky() {
+            ctx.clearRect(0, 0, width, height);
+
+            // 绘制繁星
+            stars.forEach(star => {
+                star.alpha += star.speed;
+                if (star.alpha > 1 || star.alpha < 0) star.speed = -star.speed;
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 230, 240, ${Math.abs(star.alpha)})`;
+                ctx.fill();
+            });
+
+            // 绘制流星
+            createMeteor();
+            for (let i = meteors.length - 1; i >= 0; i--) {
+                const m = meteors[i];
+                const endX = m.x + m.length * Math.cos(m.angle);
+                const endY = m.y + m.length * Math.sin(m.angle);
+
+                const grad = ctx.createLinearGradient(m.x, m.y, endX, endY);
+                grad.addColorStop(0, `rgba(255, 182, 193, ${m.alpha})`);
+                grad.addColorStop(1, 'rgba(255, 182, 193, 0)');
+
+                ctx.beginPath();
+                ctx.moveTo(m.x, m.y);
+                ctx.lineTo(endX, endY);
+                ctx.strokeStyle = grad;
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                m.x += m.speed * Math.cos(m.angle);
+                m.y += m.speed * Math.sin(m.angle);
+                m.alpha -= 0.01;
+
+                if (m.alpha <= 0) meteors.splice(i, 1);
+            }
+
+            requestAnimationFrame(drawSky);
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        drawSky();
+
+        // ==================== 2. 鼠标/触摸 粒子拖尾特效 ====================
+        const trailCanvas = document.getElementById('trailCanvas');
+        const trailCtx = trailCanvas.getContext('2d');
+        let particles = [];
+
+        function resizeTrailCanvas() {
+            trailCanvas.width = window.innerWidth;
+            trailCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeTrailCanvas);
+        resizeTrailCanvas();
+
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = (Math.random() - 0.5) * 1.5;
+                this.speedY = (Math.random() - 0.5) * 1.5;
+                this.color = Math.random() > 0.5 ? '#FF758C' : '#ECC5C0';
+                this.alpha = 1;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.alpha -= 0.02;
+            }
+            draw() {
+                trailCtx.save();
+                trailCtx.globalAlpha = Math.max(0, this.alpha);
+                trailCtx.beginPath();
+                trailCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                trailCtx.fillStyle = this.color;
+                trailCtx.shadowBlur = 8;
+                trailCtx.shadowColor = this.color;
+                trailCtx.fill();
+                trailCtx.restore();
+            }
+        }
+
+        function handlePointerMove(e) {
+            const x = e.clientX || (e.touches && e.touches[0].clientX);
+            const y = e.clientY || (e.touches && e.touches[0].clientY);
+            if (x && y) {
+                for (let i = 0; i < 2; i++) {
+                    particles.push(new Particle(x, y));
+                }
+            }
+        }
+
+        window.addEventListener('mousemove', handlePointerMove);
+        window.addEventListener('touchmove', handlePointerMove);
+
+        function animateParticles() {
+            trailCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].alpha <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // ==================== 3. 解锁交互逻辑 (心率长按 3s) ====================
+        const unlockBtn = document.getElementById('unlockBtn');
+        const progressCircle = document.getElementById('progressCircle');
+        const unlockOverlay = document.getElementById('unlockOverlay');
+        const mainContent = document.getElementById('mainContent');
+        const btnText = document.getElementById('btnText');
+        
+        let holdTimer = null;
+        let progress = 0;
+        const totalHoldTime = 3000; // 3 秒
+        const step = 50;
+
+        function startHold(e) {
+            e.preventDefault();
+            btnText.innerText = "融合中...";
+            progress = 0;
+            
+            holdTimer = setInterval(() => {
+                progress += step;
+                const strokeDashoffset = 276.46 - (progress / totalHoldTime) * 276.46;
+                progressCircle.style.strokeDashoffset = Math.max(0, strokeDashoffset);
+
+                if (progress >= totalHoldTime) {
+                    clearInterval(holdTimer);
+                    unlockSuccess();
+                }
+            }, step);
+        }
+
+        function endHold() {
+            if (progress < totalHoldTime) {
+                clearInterval(holdTimer);
+                progress = 0;
+                progressCircle.style.strokeDashoffset = 276.46;
+                btnText.innerText = "按住解锁";
+            }
+        }
+
+        function unlockSuccess() {
+            // 触发爱心爆裂
+            confetti({
+                particleCount: 120,
+                spread: 100,
+                origin: { y: 0.6 },
+                colors: ['#FF758C', '#FF7EB3', '#ECC5C0']
+            });
+
+            unlockOverlay.classList.add('opacity-0');
+            setTimeout(() => {
+                unlockOverlay.style.display = 'none';
+                mainContent.classList.remove('opacity-0');
+                triggerScrollAnimation(); // 初始化滚动动画
+            }, 1000);
+        }
+
+        unlockBtn.addEventListener('mousedown', startHold);
+        unlockBtn.addEventListener('mouseup', endHold);
+        unlockBtn.addEventListener('mouseleave', endHold);
+        unlockBtn.addEventListener('touchstart', startHold);
+        unlockBtn.addEventListener('touchend', endHold);
+
+        // ==================== 4. 动态计时器 ====================
+        function updateTimer() {
+            const now = new Date();
+            const diff = now - LOVE_START_DATE;
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const minutes = Math.floor((diff / (1000 * 60)) % 60);
+            const seconds = Math.floor((diff / 1000) % 60);
+
+            document.getElementById('timerDays').innerText = String(days).padStart(3, '0');
+            document.getElementById('timerHours').innerText = String(hours).padStart(2, '0');
+            document.getElementById('timerMinutes').innerText = String(minutes).padStart(2, '0');
+            document.getElementById('timerSeconds').innerText = String(seconds).padStart(2, '0');
+        }
+        setInterval(updateTimer, 1000);
+        updateTimer();
+
+        // 设置页脚年份
+        document.getElementById('currentYear').innerText = new Date().getFullYear();
+
+        // ==================== 5. 3D 翻转卡片交互 ====================
+        document.querySelectorAll('.card-inner').forEach(card => {
+            card.addEventListener('click', () => {
+                card.classList.toggle('rotate-y-180');
+            });
+        });
+
+        // ==================== 6. 滚动驱动动画 (Scroll Trigger) ====================
+        function triggerScrollAnimation() {
+            const items = document.querySelectorAll('.timeline-item');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.remove('opacity-0', 'translate-y-8');
+                    }
+                });
+            }, { threshold: 0.2 });
+
+            items.forEach(item => observer.observe(item));
+        }
+
+        // ==================== 7. Canvas 刮刮乐效果 ====================
+        function initScratchCard() {
+            const canvas = document.getElementById('scratchCanvas');
+            const scratchCtx = canvas.getContext('2d');
+            let isDrawing = false;
+
+            // 设置画布尺寸
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+
+            // 绘制遮罩银灰色涂层
+            scratchCtx.fillStyle = '#2A2D37';
+            scratchCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 绘制遮罩文字提示
+            scratchCtx.font = '12px sans-serif';
+            scratchCtx.fillStyle = '#A0AEC0';
+            scratchCtx.textAlign = 'center';
+            scratchCtx.fillText('✨ 刮开涂层 查看隐藏心里话 ✨', canvas.width / 2, canvas.height / 2 + 4);
+
+            function scratch(e) {
+                if (!isDrawing) return;
+                const rect = canvas.getBoundingClientRect();
+                const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+                const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
+
+                scratchCtx.globalCompositeOperation = 'destination-out';
+                scratchCtx.beginPath();
+                scratchCtx.arc(x, y, 16, 0, Math.PI * 2);
+                scratchCtx.fill();
+            }
+
+            canvas.addEventListener('mousedown', () => isDrawing = true);
+            canvas.addEventListener('mouseup', () => isDrawing = false);
+            canvas.addEventListener('mousemove', scratch);
+
+            canvas.addEventListener('touchstart', () => isDrawing = true);
+            canvas.addEventListener('touchend', () => isDrawing = false);
+            canvas.addEventListener('touchmove', scratch);
+        }
+        window.addEventListener('load', initScratchCard);
+
+        // ==================== 8. 爱意发射器 Confetti ====================
+        document.getElementById('confettiBtn').addEventListener('click', () => {
+            confetti({
+                particleCount: 80,
+                spread: 70,
+                origin: { y: 0.7 },
+                shapes: ['square'],
+                colors: ['#FF758C', '#ECC5C0', '#8A2387', '#FFFFFF']
+            });
+        });
+
+        // ==================== 9. 情话胶囊 Modal ====================
+        const capsuleModal = document.getElementById('capsuleModal');
+        const modalBox = document.getElementById('modalBox');
+        const capsuleText = document.getElementById('capsuleText');
+
+        document.getElementById('capsuleBtn').addEventListener('click', () => {
+            const randomQuote = LOVE_QUOTES[Math.floor(Math.random() * LOVE_QUOTES.length)];
+            capsuleText.innerText = randomQuote;
+            
+            capsuleModal.classList.remove('opacity-0', 'pointer-events-none');
+            modalBox.classList.remove('scale-95');
+            modalBox.classList.add('scale-100');
+        });
+
+        document.getElementById('closeCapsule').addEventListener('click', () => {
+            capsuleModal.classList.add('opacity-0', 'pointer-events-none');
+            modalBox.classList.remove('scale-100');
+            modalBox.classList.add('scale-95');
+        });
+
+        // ==================== 10. Web Audio 音频/心律极简模拟 ====================
+        let audioCtx = null;
+        let isPlayingMusic = false;
+
+        document.getElementById('musicToggle').addEventListener('click', function() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            
+            isPlayingMusic = !isPlayingMusic;
+            this.classList.toggle('text-pink-500');
+            this.classList.toggle('bg-white/20');
+
+            if (isPlayingMusic) {
+                playRomanticTone();
+            }
+        });
+
+        function playRomanticTone() {
+            if (!isPlayingMusic) return;
+            // 简单的柔和背景音高模拟
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(329.63, audioCtx.currentTime); // E4 柔和音调
+            gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + 2);
+
+            if (isPlayingMusic) {
+                setTimeout(playRomanticTone, 2500);
+            }
+        }
+    </script>
+</body>
+</html>
