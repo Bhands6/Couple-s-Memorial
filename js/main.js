@@ -96,6 +96,41 @@
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const isTouch = window.matchMedia('(hover: none)').matches;
 
+  /* ---------- 照片格式自适应：按实际存在的扩展名加载 ---------- */
+  // CONFIG 里写的扩展名只是首选；找不到时会自动尝试下列常见格式
+  const PHOTO_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif', 'bmp'];
+
+  function probeImage(src) {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = src;
+    });
+  }
+
+  async function resolvePhotoSrc(src) {
+    if (!src) return src;
+    // dataURL / blob / 外链 / 根路径：原样使用，不探测
+    if (/^(data:|blob:|https?:|\/)/i.test(src)) return src;
+    const base = src.replace(/\.[a-zA-Z0-9]+$/, '');
+    const candidates = [src];
+    PHOTO_EXTS.forEach(ext => {
+      const candidate = `${base}.${ext}`;
+      if (candidate !== src) candidates.push(candidate);
+    });
+    for (let i = 0; i < candidates.length; i++) {
+      if (await probeImage(candidates[i])) return candidates[i];
+    }
+    return src; // 都没找到，保留原值
+  }
+
+  async function preparePhotos() {
+    await Promise.all(CONFIG.photos.map(async (p, i) => {
+      if (p.src) CONFIG.photos[i].src = await resolvePhotoSrc(p.src);
+    }));
+  }
+
   /* ---------- 定制内容：读取本地保存 ---------- */
   const SETTINGS_KEY = 'ourLoveSettings_v1';
   const pendingPhotos = {};
@@ -1611,8 +1646,10 @@
   initFloatingHearts();
   initCursor();
   buildTimeline();
-  buildGallery();
-  initPhotoCube();
+  preparePhotos().then(() => {
+    buildGallery();
+    initPhotoCube();
+  });
   buildReasons();
   buildFortunes();
   initHeartButton();
