@@ -14,15 +14,15 @@
 | :---: | :---: |
 | <img src="docs/screenshots/03-story.jpg" width="440"> | <img src="docs/screenshots/04-letter.jpg" width="440"> |
 
-| 爱你的理由 | 我们的小游乐场 |
+| 我们的瞬间（3D 立方体） | 爱你的理由 |
 | :---: | :---: |
-| <img src="docs/screenshots/05-reasons.jpg" width="440"> | <img src="docs/screenshots/06-playground.jpg" width="440"> |
+| <img src="docs/screenshots/08-gallery.jpg" width="440"> | <img src="docs/screenshots/05-reasons.jpg" width="440"> |
 
-<p align="center">
-  <img src="docs/screenshots/07-quiz-footer.jpg" width="600" alt="默契大考验与页脚">
-</p>
+| 我们的小游乐场 | 默契大考验与页脚 |
+| :---: | :---: |
+| <img src="docs/screenshots/06-playground.jpg" width="440"> | <img src="docs/screenshots/07-quiz-footer.jpg" width="440"> |
 
-> 相册区块的 3D 立方体为实时交互效果，建议本地打开体验；截图为演示数据。
+> 截图为演示数据；相册的平铺→拼合、拖动旋转、悬停展开为实时交互，建议本地打开体验。
 
 ## 功能一览
 
