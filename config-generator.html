@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>配置生成器 · 爱的空间</title>
+<style>
+  :root {
+    --bg: #fff7f9; --card: #fff; --ink: #4a3540; --muted: #9a7d88;
+    --pink: #e2517c; --pink-soft: #fdeaf0; --line: #f2dbe4; --ok: #2e9e6b;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--ink); line-height: 1.6; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 28px 20px 80px; }
+  h1 { font-size: 26px; margin: 0 0 4px; color: var(--pink); }
+  .sub { color: var(--muted); margin: 0 0 22px; font-size: 14px; }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+    padding: 20px 22px; margin-bottom: 16px; box-shadow: 0 6px 24px rgba(226,81,124,.06); }
+  .panel h2 { font-size: 17px; margin: 0 0 14px; padding-bottom: 10px;
+    border-bottom: 2px solid var(--pink-soft); }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .row > label { flex: 1 1 220px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+  .row > label.wide { flex-basis: 100%; }
+  input, textarea, select { width: 100%; padding: 9px 11px; border: 1px solid var(--line);
+    border-radius: 8px; font: inherit; font-size: 14px; color: var(--ink); background: #fff; resize: vertical; }
+  input:focus, textarea:focus { outline: 2px solid var(--pink-soft); border-color: var(--pink); }
+  textarea { min-height: 84px; }
+  .list-item { border: 1px dashed var(--line); border-radius: 10px; padding: 12px; margin-bottom: 10px;
+    background: #fffafd; }
+  .list-item .row:last-child { margin-bottom: 0; }
+  .item-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .item-head b { font-size: 13px; color: var(--pink); }
+  button { cursor: pointer; border: none; border-radius: 8px; font: inherit; font-size: 14px;
+    padding: 9px 16px; transition: transform .12s, opacity .12s; }
+  button:hover { transform: translateY(-1px); }
+  .btn-add { background: var(--pink-soft); color: var(--pink); font-weight: 600; }
+  .btn-del { background: transparent; color: var(--muted); font-size: 12px; padding: 4px 8px; }
+  .btn-del:hover { color: #c0392b; }
+  .btn-primary { background: var(--pink); color: #fff; font-weight: 600; padding: 13px 28px; font-size: 15px; }
+  .btn-ghost { background: #f5f5f7; color: var(--ink); }
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
+  .hint { font-size: 12px; color: var(--muted); }
+  .status { font-size: 13px; color: var(--ok); margin-left: auto; }
+  .status.err { color: #c0392b; }
+  .actions { position: sticky; bottom: 0; background: linear-gradient(transparent, var(--bg) 20%);
+    padding: 20px 0 0; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  details.preview { margin-top: 14px; }
+  details.preview summary { cursor: pointer; color: var(--pink); font-size: 13px; font-weight: 600; }
+  pre { background: #2b2230; color: #ffe8f0; padding: 16px; border-radius: 10px; overflow: auto;
+    font-size: 12px; line-height: 1.5; max-height: 420px; }
+  .note { background: #fff8e8; border-left: 4px solid #f0b429; padding: 12px 16px;
+    border-radius: 8px; font-size: 13px; color: #7a5b1e; margin-bottom: 18px; }
+  .note b { color: #a06a00; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>配置生成器 · 爱的空间</h1>
+  <p class="sub">填好数据 → 导出新的 <code>js/main.js</code> → 覆盖原文件 → push，所有人看到的就是这份内容（不再依赖浏览器本地设置）。</p>
+
+  <div class="note">
+    <b>使用顺序：</b>① 可选：点「加载现有 main.js」读取你改过的配置 → ② 填表 → ③ 点「导出 main.js」下载 → ④ 用下载的文件覆盖项目里的 <code>js/main.js</code> → ⑤ git commit & push。<br>
+    照片只填<b>路径</b>（如 <code>images/photo1.jpg</code>），不要把图片内容贴进来。
+  </div>
+
+  <div class="toolbar">
+    <label class="btn-ghost" style="position:relative;overflow:hidden;">
+      加载现有 main.js
+      <input type="file" id="fileInput" accept=".js" style="position:absolute;inset:0;opacity:0;cursor:pointer;">
+    </label>
+    <button class="btn-ghost" id="resetBtn">恢复默认</button>
+    <span class="status" id="status"></span>
+  </div>
+
+  <form id="cfgForm">
+    <div class="panel">
+      <h2>基本信息</h2>
+      <div class="row">
+        <label>我的昵称<input data-path="nameA"></label>
+        <label>TA 的昵称<input data-path="nameB"></label>
+        <label>开始时间（YYYY-MM-DDTHH:mm:ss）<input data-path="startDate"></label>
+        <label>纪念日 · 月<input type="number" data-path="anniversary.month" min="1" max="12"></label>
+        <label>纪念日 · 日<input type="number" data-path="anniversary.day" min="1" max="31"></label>
+      </div>
+      <div class="row">
+        <label class="wide">背景音乐地址（留空用内置轻音乐）<input data-path="bgmSrc"></label>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>首页轮播句子</h2>
+      <div id="taglines-list"></div>
+      <button type="button" class="btn-add" data-add="taglines">+ 加一句</button>
+    </div>
+
+    <div class="panel">
+      <h2>情书</h2>
+      <div class="row"><label class="wide">正文（支持换行）<textarea data-path="letter" rows="10"></textarea></label></div>
+    </div>
+
+    <div class="panel">
+      <h2>相册（6 面立方体，建议正好 6 张）</h2>
+      <div id="photos-list"></div>
+      <button type="button" class="btn-add" data-add="photos">+ 加一张</button>
+      <p class="hint">说明文字可留空；图片路径如 images/photo1.jpg，扩展名支持 jpg/png/webp/gif/avif/bmp。</p>
+    </div>
+
+    <div class="panel">
+      <h2>爱你的理由</h2>
+      <div id="reasons-list"></div>
+      <button type="button" class="btn-add" data-add="reasons">+ 加一张</button>
+    </div>
+
+    <div class="panel">
+      <h2>心动签</h2>
+      <div id="fortunes-list"></div>
+      <button type="button" class="btn-add" data-add="fortunes">+ 加一条</button>
+    </div>
+
+    <div class="panel">
+      <h2>默契问答</h2>
+      <div id="quiz-list"></div>
+      <button type="button" class="btn-add" data-add="quiz">+ 加一题</button>
+    </div>
+
+    <div class="panel">
+      <h2>点爱心的回应语</h2>
+      <div id="heartMessages-list"></div>
+      <button type="button" class="btn-add" data-add="heartMessages">+ 加一句</button>
+    </div>
+
+    <details class="preview">
+      <summary>预览生成的 CONFIG 代码</summary>
+      <pre id="preview"></pre>
+    </details>
+
+    <div class="actions">
+      <button type="button" class="btn-primary" id="exportBtn">导出 main.js</button>
+      <button type="button" class="btn-ghost" id="downloadCfgBtn">仅导出 CONFIG.txt</button>
+      <span class="hint">导出的 main.js 直接覆盖项目 js/main.js 即可</span>
+    </div>
+  </form>
+</div>
+
+<script>
+'use strict';
+const DEFAULT = {
+  nameA: '小鹿', nameB: '小兔', startDate: '2023-05-20T00:00:00',
+  anniversary: { month: 5, day: 20 },
+  taglines: ['遇见你之后，每一天都值得被记录。','你是我平淡生活里，最亮的那颗星。','世界很大，但我只想和你回家。','往后余生，请多指教。'],
+  letter: '见字如面。\n\n其实想说的话很多，真落笔的时候，又不知道从哪一句开始。\n\n这些琐碎的小事，拼在一起，就是我全部的幸福。\n\n我会一直牵着你的手，慢慢走，不着急。',
+  photos: [
+    { caption:'第一次一起看的海', emoji:'🌊', gradient:'linear-gradient(135deg,#89f7fe,#66a6ff)', src:'images/photo1.jpg' },
+    { caption:'你笑起来真好看', emoji:'😄', gradient:'linear-gradient(135deg,#fad0c4,#ffd1ff)', src:'images/photo2.jpg' },
+    { caption:'我们的第一张合照', emoji:'🥂', gradient:'linear-gradient(135deg,#ff9a9e,#fecfef)', src:'images/photo3.jpg' },
+    { caption:'一起吃过的深夜火锅', emoji:'🍲', gradient:'linear-gradient(135deg,#f6d365,#fda085)', src:'images/photo4.jpg' },
+    { caption:'雨天的伞下', emoji:'☔', gradient:'linear-gradient(135deg,#a1c4fd,#c2e9fb)', src:'images/photo5.jpg' },
+    { caption:'新年一起放的烟花', emoji:'🎆', gradient:'linear-gradient(135deg,#fbc2eb,#a6c1ee)', src:'images/photo6.jpg' },
+  ],
+  reasons: [
+    { emoji:'😊', title:'你的笑', text:'你一笑，我一天的疲惫就都没了。' },
+    { emoji:'👂', title:'你的耐心', text:'我再啰嗦，你也会认真听完每一句。' },
+    { emoji:'🤗', title:'你的拥抱', text:'难过的时候，你的怀抱比什么都管用。' },
+    { emoji:'😤', title:'你的小脾气', text:'连生气都那么可爱，真是拿你没办法。' },
+    { emoji:'🍳', title:'你的厨艺', text:'你做的饭，是外面任何餐厅都比不上的味道。' },
+    { emoji:'📚', title:'你的认真', text:'你专注做事的样子，真的很好看。' },
+    { emoji:'🏠', title:'你的陪伴', text:'有你在的地方，就是我想要的家。' },
+    { emoji:'💖', title:'你的全部', text:'说不上来为什么，就是很爱你。' },
+  ],
+  fortunes: ['今日宜牵手，忌冷战 💕','今天适合一起看一场电影 🎬','宜吃甜品，忌减肥 🍰','出门会遇到小确幸 🍀','宜拥抱，宜说晚安 🌙','宜一起散步，看晚霞 🌇'],
+  quiz: [
+    { q:'我们第一次见面是在哪里？', options:['咖啡店','图书馆','朋友的聚会','地铁站'], answer:0 },
+    { q:'TA 最喜欢的解压方式是？', options:['睡大觉','吃好吃的','购物','打游戏'], answer:1 },
+    { q:'我们吵架后一般谁先低头？', options:['我','TA','谁也不理谁','同时道歉'], answer:3 },
+    { q:'TA 最想和我一起去的地方是？', options:['海边','雪山','沙漠','游乐园'], answer:0 },
+    { q:'我们在一起后养成的小习惯是？', options:['每天说晚安','一起买菜','周末睡懒觉','互相投喂'], answer:0 },
+  ],
+  heartMessages: ['嘿嘿，收到你的爱啦 ❤','再来一下嘛～','爱意 +1，开心 +100','你也太爱我了吧','这个爱心，我记下了','再多来点，我全部都要！','今天也是被你甜到的一天','每一次心动，都依然是你'],
+  bgmSrc: 'audio/UnderTree.flac',
+};
+
+let current = deepClone(DEFAULT);
+let baseJs = null; // 加载进来的原始 main.js 文本
+
+function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
+function $(s, r=document){ return r.querySelector(s); }
+function $$(s, r=document){ return Array.from(r.querySelectorAll(s)); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function status(msg, err){ const el=$('#status'); el.textContent=msg; el.className='status'+(err?' err':''); }
+
+// ---- 列表渲染 ----
+const listFields = {
+  taglines: { item: v=>({v}), fields:[['v','句子','text']] },
+  photos: { item: ()=>({caption:'',emoji:'📷',gradient:'linear-gradient(135deg,#ff9a9e,#fad0c4)',src:''}),
+    fields:[['caption','说明文字','text'],['emoji','图标','text'],['src','图片路径','text'],['gradient','占位渐变','text']] },
+  reasons: { item: ()=>({emoji:'💖',title:'',text:''}),
+    fields:[['emoji','图标','text'],['title','正面标题','text'],['text','背面文案','text']] },
+  fortunes: { item: v=>({v}), fields:[['v','签文','text']] },
+  quiz: { item: ()=>({q:'',options:['','','',''],answer:0}),
+    fields:[['q','题目','text'],['o0','选项 A','text'],['o1','选项 B','text'],['o2','选项 C','text'],['o3','选项 D','text'],['answer','正确答案下标(0-3)','number']] },
+  heartMessages: { item: v=>({v}), fields:[['v','回应语','text']] },
+};
+
+function listToValues(key){
+  const arr = current[key];
+  return arr.map(v => {
+    if (key==='taglines'||key==='fortunes'||key==='heartMessages') return v;
+    return v;
+  });
+}
+function renderList(key){
+  const box = $('#'+key+'-list'); if(!box) return;
+  box.innerHTML='';
+  const cfg = listFields[key];
+  const items = current[key];
+  items.forEach((item, idx) => {
+    const div = document.createElement('div'); div.className='list-item';
+    let html = `<div class="item-head"><b>#${idx+1}</b><button type="button" class="btn-del" data-del="${key}" data-idx="${idx}">删除</button></div><div class="row">`;
+    cfg.fields.forEach(([f,label,type]) => {
+      let val;
+      if (f==='v') val = item;
+      else if (/^o\d$/.test(f)) val = item.options[Number(f[1])];
+      else val = item[f];
+      if (type==='textarea') html += `<label class="wide">${label}<textarea data-list="${key}" data-idx="${idx}" data-field="${f}" rows="3">${esc(val)}</textarea></label>`;
+      else html += `<label>${label}<input type="${type}" data-list="${key}" data-idx="${idx}" data-field="${f}" value="${esc(val)}" ${type==='number'?'min="0" max="3"':''}></label>`;
+    });
+    html += '</div>';
+    div.innerHTML = html; box.appendChild(div);
+  });
+}
+function renderAll(){
+  $$('[data-path]').forEach(el => {
+    const path = el.dataset.path.split('.');
+    let v = current; path.forEach(p => v = v[p]);
+    el.value = v==null ? '' : v;
+  });
+  Object.keys(listFields).forEach(renderList);
+  updatePreview();
+}
+function collectAll(){
+  $$('[data-path]').forEach(el => {
+    const path = el.dataset.path.split('.');
+    let v = el.value;
+    if (el.type==='number') v = Number(v);
+    if (path.length===1) current[path[0]] = v;
+    else current[path[0]][path[1]] = v;
+  });
+  $$('[data-list]').forEach(el => {
+    const key=el.dataset.list, idx=Number(el.dataset.idx), f=el.dataset.field;
+    let v = el.value;
+    if (el.type==='number') v = Math.max(0, Math.min(3, Number(v)||0));
+    if (f==='v') current[key][idx] = v;
+    else if (/^o\d$/.test(f)) current[key][idx].options[Number(f[1])] = v;
+    else current[key][idx][f] = v;
+  });
+  updatePreview();
+}
+
+// ---- 序列化 CONFIG 为 JS 源码 ----
+function jsStr(s){ return JSON.stringify(String(s)); }
+function tplStr(s){ return '`'+String(s).replace(/\\/g,'\\\\').replace(/`/g,'\\`').replace(/\$\{/g,'\\${')+'`'; }
+function serialize(cfg){
+  const L = [];
+  L.push('  const CONFIG = {');
+  L.push(`    nameA: ${jsStr(cfg.nameA)},`);
+  L.push(`    nameB: ${jsStr(cfg.nameB)},`);
+  L.push(`    startDate: ${jsStr(cfg.startDate)},`);
+  L.push(`    anniversary: { month: ${Number(cfg.anniversary.month)||1}, day: ${Number(cfg.anniversary.day)||1} },`);
+  L.push('');
+  L.push('    // 首页打字机轮播句子');
+  L.push('    taglines: [');
+  cfg.taglines.forEach(t => L.push(`      ${jsStr(t)},`));
+  L.push('    ],');
+  L.push('');
+  L.push('    // 情书内容');
+  L.push(`    letter: ${tplStr(cfg.letter)},`);
+  L.push('');
+  L.push('    // 相册');
+  L.push('    photos: [');
+  cfg.photos.forEach(p => L.push(`      { caption: ${jsStr(p.caption)}, emoji: ${jsStr(p.emoji)}, gradient: ${jsStr(p.gradient)}, src: ${jsStr(p.src)} },`));
+  L.push('    ],');
+  L.push('');
+  L.push('    // 爱你的理由');
+  L.push('    reasons: [');
+  cfg.reasons.forEach(r => L.push(`      { emoji: ${jsStr(r.emoji)}, title: ${jsStr(r.title)}, text: ${jsStr(r.text)} },`));
+  L.push('    ],');
+  L.push('');
+  L.push('    // 心动签');
+  L.push('    fortunes: [');
+  cfg.fortunes.forEach(f => L.push(`      ${jsStr(f)},`));
+  L.push('    ],');
+  L.push('');
+  L.push('    // 默契测试');
+  L.push('    quiz: [');
+  cfg.quiz.forEach(q => L.push(`      { q: ${jsStr(q.q)}, options: [${q.options.map(jsStr).join(', ')}], answer: ${Number(q.answer)||0} },`));
+  L.push('    ],');
+  L.push('');
+  L.push('    // 点爱心按钮时轮播的话');
+  L.push('    heartMessages: [');
+  cfg.heartMessages.forEach(m => L.push(`      ${jsStr(m)},`));
+  L.push('    ],');
+  L.push('');
+  L.push('    // 背景音乐地址');
+  L.push(`    bgmSrc: ${jsStr(cfg.bgmSrc)},`);
+  L.push('  };');
+  return L.join('\n');
+}
+
+function buildConfigBlock(){ return serialize(current); }
+function buildFullJs(){
+  const block = buildConfigBlock();
+  if (baseJs) {
+    // 用正则替换 const CONFIG = {...}; 到第一个独立的 "  };" 行
+    const re = /  const CONFIG = \{[\s\S]*?\n  \};/;
+    if (re.test(baseJs)) return baseJs.replace(re, block);
+    status('未能在加载的文件中定位 CONFIG，已导出独立配置块', true);
+  }
+  // 没有原始文件时，导出一个带壳的模板（不含实现，仅配置）
+  return "(function(){\n'use strict';\n"+block+"\n  window.__CONFIG = CONFIG;\n})();\n";
+}
+function download(name, text){
+  const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+}
+function updatePreview(){ const pre=$('#preview'); if(pre) pre.textContent = buildConfigBlock(); }
+
+// ---- 事件 ----
+$('#fileInput').addEventListener('change', e => {
+  const f = e.target.files && e.target.files[0]; if(!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const text = String(reader.result);
+    try {
+      // 从源码里抽出 CONFIG 字面量，用 Function 求值
+      const m = text.match(/const CONFIG = (\{[\s\S]*?\n  \});/);
+      if(!m) throw new Error('未找到 CONFIG 定义');
+      // 把注释里的反引号等不影响，直接 eval 字面量
+      const obj = new Function('return '+m[1])();
+      current = obj; baseJs = text;
+      renderAll(); status('已加载 '+f.name+' 的配置');
+    } catch(err){ status('解析失败：'+err.message, true); }
+  };
+  reader.readAsText(f, 'utf-8');
+  e.target.value='';
+});
+$('#resetBtn').addEventListener('click', ()=>{
+  if(!confirm('恢复为工具内置的默认配置？')) return;
+  current = deepClone(DEFAULT); baseJs=null; renderAll(); status('已恢复默认');
+});
+$('#cfgForm').addEventListener('click', e => {
+  const add = e.target.dataset.add;
+  if(add){
+    collectAll();
+    const t = listFields[add].item;
+    current[add].push(typeof t==='function' ? t() : t(''));
+    renderList(add); updatePreview(); return;
+  }
+  const del = e.target.dataset.del;
+  if(del){
+    collectAll();
+    const idx = Number(e.target.dataset.idx);
+    current[del].splice(idx,1);
+    renderList(del); updatePreview(); return;
+  }
+});
+$('#cfgForm').addEventListener('input', collectAll);
+$('#cfgForm').addEventListener('change', collectAll);
+$('#exportBtn').addEventListener('click', ()=>{
+  collectAll();
+  download('main.js', buildFullJs());
+  status('已导出 main.js（若无原始文件则为配置模板）');
+});
+$('#downloadCfgBtn').addEventListener('click', ()=>{
+  collectAll(); download('CONFIG.txt', buildConfigBlock()); status('已导出 CONFIG.txt');
+});
+
+renderAll();
+</script>
+</body>
+</html>

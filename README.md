@@ -47,6 +47,7 @@ js/main.js           配置、渲染与交互逻辑
 images/              相册照片 photo1–photo6
 audio/               背景音乐 UnderTree.flac（默认）、shenfen.flac
 docs/screenshots/    预览图 unlock.png、hero.png
+config-generator.html  批量配置工具（填表导出新 main.js）
 README.md
 ```
 
@@ -77,6 +78,20 @@ python -m http.server 5173
 > 今日心动签的 6 条签文暂未放进定制面板，可在 `js/main.js` 的 `CONFIG.fortunes` 中直接修改。
 
 底部「恢复默认」会清空所有自定义内容并重新加载。
+
+### 批量配置（让所有人看到同一份内容）
+
+页面里的 ⚙ 面板只改当前浏览器（写 `localStorage`），不会同步给别人。若要让**每位访问者都看到你填的内容**，用配置生成器直接改代码默认值：
+
+1. 用浏览器打开 `config-generator.html`
+2. 可选：先点「加载现有 main.js」读入你已经改过的配置
+3. 填表（基本信息、轮播、情书、相册路径、理由、签文、问答、回应语、BGM）
+4. 点「导出 main.js」下载文件
+5. 用下载的文件覆盖项目里的 `js/main.js`，然后 `git commit & push`
+
+之后 GitHub Pages 自动更新，所有访问者看到的都是这份内容。注意：访问者浏览器里若已有旧的 `localStorage` 记录，仍会覆盖默认值，需在页面上点一次「恢复默认」清除。
+
+> 照片只填**路径**（如 `images/photo1.jpg`），不要把图片内容贴进表单。扩展名支持 jpg / jpeg / png / webp / gif / avif / bmp，站点会自动探测实际文件。
 
 ### 替换相册照片
 
