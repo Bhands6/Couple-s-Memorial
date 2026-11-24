@@ -33,12 +33,12 @@
 
     // 相册：把照片放进 images 文件夹后，加上 src: 'images/xxx.jpg' 即可替换占位图
     photos: [
-      { caption: '第一次一起看的海', emoji: '🌊', gradient: 'linear-gradient(135deg,#89f7fe,#66a6ff)' },
-      { caption: '你笑起来真好看', emoji: '😄', gradient: 'linear-gradient(135deg,#fad0c4,#ffd1ff)' },
-      { caption: '我们的第一张合照', emoji: '🥂', gradient: 'linear-gradient(135deg,#ff9a9e,#fecfef)' },
-      { caption: '一起吃过的深夜火锅', emoji: '🍲', gradient: 'linear-gradient(135deg,#f6d365,#fda085)' },
-      { caption: '雨天的伞下', emoji: '☔', gradient: 'linear-gradient(135deg,#a1c4fd,#c2e9fb)' },
-      { caption: '新年一起放的烟花', emoji: '🎆', gradient: 'linear-gradient(135deg,#fbc2eb,#a6c1ee)' },
+      { caption: '第一次一起看的海', emoji: '🌊', gradient: 'linear-gradient(135deg,#89f7fe,#66a6ff)', src: 'images/photo1.jpg' },
+      { caption: '你笑起来真好看', emoji: '😄', gradient: 'linear-gradient(135deg,#fad0c4,#ffd1ff)', src: 'images/photo2.jpg' },
+      { caption: '我们的第一张合照', emoji: '🥂', gradient: 'linear-gradient(135deg,#ff9a9e,#fecfef)', src: 'images/photo3.jpg' },
+      { caption: '一起吃过的深夜火锅', emoji: '🍲', gradient: 'linear-gradient(135deg,#f6d365,#fda085)', src: 'images/photo4.webp' },
+      { caption: '雨天的伞下', emoji: '☔', gradient: 'linear-gradient(135deg,#a1c4fd,#c2e9fb)', src: 'images/photo5.jpg' },
+      { caption: '新年一起放的烟花', emoji: '🎆', gradient: 'linear-gradient(135deg,#fbc2eb,#a6c1ee)', src: 'images/photo6.jpg' },
     ],
 
     // 爱你的理由（正面 emoji + 标题，背面文字）
@@ -135,13 +135,15 @@
       Object.keys(savedSettings.texts).forEach(key => setEditText(key, savedSettings.texts[key]));
     }
     if (Array.isArray(savedSettings.photos)) {
+      const legacyPhotos = !savedSettings.v;
       savedSettings.photos.forEach((photo, i) => {
         const target = CONFIG.photos[i];
         if (!target || !photo) return;
         if (photo.caption) target.caption = photo.caption;
         if (photo.emoji) target.emoji = photo.emoji;
         if (photo.src) target.src = photo.src;
-        else delete target.src;
+        // 旧版本保存的记录里没有图片，不能因此把默认照片删掉
+        else if (!legacyPhotos) delete target.src;
       });
     }
     if (Array.isArray(savedSettings.reasons)) {
@@ -1041,7 +1043,7 @@
   }
 
   function collectSettings(container) {
-    const data = { texts: {} };
+    const data = { v: 2, texts: {} };
     const CONFIG_KEYS = ['nameA', 'nameB', 'startDate', 'annivMonth', 'annivDay', 'taglines', 'letter', 'bgmSrc'];
     const val = key => {
       const el = container.querySelector(`[data-key="${key}"]`);
