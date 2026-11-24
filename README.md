@@ -23,7 +23,7 @@ index.html          页面结构
 css/style.css       全部样式
 js/main.js          配置、渲染与交互逻辑
 code_artifact.html  早期星空页原稿（当前未引用）
-audio/              背景音乐目录（.flac 未纳入仓库，见下文）
+audio/              背景音乐（shenfen.flac）
 ```
 
 ## 本地运行
@@ -56,10 +56,7 @@ python -m http.server 5173
 
 页面启动时尝试播放 `audio/shenfen.flac`（《身份》— 艾岩），文件缺失时自动改用内置轻音乐，右上角 ♪ 可暂停/继续。
 
-由于该 FLAC 约 145MB，超过 GitHub 单文件 100MB 限制，仓库中未包含音频（`audio/` 已加入 `.gitignore`）。需要带音乐时二选一：
-
-1. 将音频转成 mp3（建议 128–192kbps）放到 `audio/`，并在 `js/main.js` 的 `CONFIG.bgmSrc` 或定制面板里填写路径；
-2. 使用 Git LFS 上传原始 flac。
+该 flac 约 27MB，已随仓库提交（GitHub 单文件上限 100MB）。如需更小的文件或更换歌曲，替换 `audio/shenfen.flac`，或在 `js/main.js` 的 `CONFIG.bgmSrc` 和定制面板「背景音乐 → 音频地址」里改成新路径 / 直链。
 
 ## 部署
 

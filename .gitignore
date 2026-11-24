@@ -1,6 +1,3 @@
 # 依赖与工具产物
 node_modules/
 .trae-html-share-packages/
-
-# 音频文件：FLAC 单文件超过 GitHub 100MB 限制，不纳入仓库
-audio/
