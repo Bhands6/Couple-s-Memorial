@@ -185,30 +185,77 @@
     ['days', 'hours', 'minutes', 'seconds'].forEach(k => (els[k] = $(`[data-unit="${k}"]`)));
     const last = {};
     const footerDays = $('#footer-days');
+    const timer = $('.sky-timer');
 
-    function update() {
+    const snapshot = () => {
       let diff = Math.max(0, Date.now() - start.getTime());
       const d = Math.floor(diff / 86400000); diff -= d * 86400000;
       const h = Math.floor(diff / 3600000); diff -= h * 3600000;
       const m = Math.floor(diff / 60000); diff -= m * 60000;
       const s = Math.floor(diff / 1000);
-      const vals = { days: d, hours: h, minutes: m, seconds: s };
+      return { days: d, hours: h, minutes: m, seconds: s };
+    };
+
+    const paint = (vals, animate) => {
       for (const k in vals) {
         const v = String(vals[k]).padStart(2, '0');
-        if (last[k] !== v) {
-          els[k].textContent = v;
-          if (last[k] !== undefined && !reduceMotion) {
-            els[k].classList.remove('tick');
-            void els[k].offsetWidth;
-            els[k].classList.add('tick');
-          }
-          last[k] = v;
+        if (last[k] === v) continue;
+        els[k].textContent = v;
+        if (animate && last[k] !== undefined && !reduceMotion) {
+          els[k].classList.remove('tick');
+          void els[k].offsetWidth;
+          els[k].classList.add('tick');
         }
+        last[k] = v;
       }
-      if (footerDays) footerDays.textContent = d;
+      if (footerDays) footerDays.textContent = vals.days;
+    };
+
+    const startTicking = () => setInterval(() => paint(snapshot(), true), 1000);
+
+    let started = false;
+    const startEntrance = () => {
+      if (started) return;
+      started = true;
+      const ENTER = reduceMotion ? 0 : 1200;
+
+      if (!ENTER) {
+        paint(snapshot(), false);
+        startTicking();
+        return;
+      }
+
+      if (timer) timer.classList.add('entering');
+      const t0 = performance.now();
+      const target = snapshot();
+      const frame = now => {
+        const p = Math.min(1, (now - t0) / ENTER);
+        const e = 1 - Math.pow(1 - p, 3);
+        paint({
+          days: Math.floor(target.days * e),
+          hours: Math.floor(target.hours * e),
+          minutes: Math.floor(target.minutes * e),
+          seconds: Math.floor(target.seconds * e),
+        }, false);
+        if (p < 1) {
+          requestAnimationFrame(frame);
+        } else {
+          paint(snapshot(), false);
+          startTicking();
+          setTimeout(() => timer && timer.classList.remove('entering'), 1600);
+        }
+      };
+      requestAnimationFrame(frame);
+    };
+
+    // 解锁后才开始跳动，避免被开场遮罩挡住
+    const overlayEl = $('#unlockOverlay');
+    const stillLocked = !!overlayEl && !overlayEl.classList.contains('is-hidden');
+    if (stillLocked) {
+      window.addEventListener('love:unlocked', startEntrance, { once: true });
+    } else {
+      startEntrance();
     }
-    update();
-    setInterval(update, 1000);
 
     updateNextAnniv();
   }
@@ -257,6 +304,7 @@
   let burstHearts = () => {};
   function initCanvas() {
     const canvas = $('#bg-canvas');
+    if (!canvas || getComputedStyle(canvas).display === 'none') return;
     const ctx = canvas.getContext('2d');
     let W, H, stars = [], hearts = [], bursts = [], running = true, rafId = null;
 
@@ -678,16 +726,40 @@
   }
 
   /* ---------- 爱你的理由 翻牌 ---------- */
+  const REASON_META = [
+    { r: '-1.8deg', wash: '#ffe0ea', deep: '#ffb2cd', en: 'Your Smile' },
+    { r: '1.4deg', wash: '#ffe8d8', deep: '#ffc39c', en: 'Your Patience' },
+    { r: '-1.1deg', wash: '#ece0ff', deep: '#c8aef2', en: 'Your Hug' },
+    { r: '2deg', wash: '#ffe4ee', deep: '#f5a6c6', en: 'Your Temper' },
+    { r: '1.6deg', wash: '#fff0d6', deep: '#ffd88e', en: 'Your Cooking' },
+    { r: '-1.5deg', wash: '#dff0e6', deep: '#a9d9be', en: 'Your Focus' },
+    { r: '1.2deg', wash: '#ffe2e0', deep: '#f5aaa3', en: 'Your Company' },
+    { r: '-1.9deg', wash: '#ffe4ee', deep: '#f5a6c6', en: 'All of You' },
+  ];
+
   function buildReasons() {
     const grid = $('#reasons-grid');
     grid.innerHTML = '';
     CONFIG.reasons.forEach((r, i) => {
+      const meta = REASON_META[i] || { r: '0deg', wash: '#ffe0ea', deep: '#ffb2cd', en: '' };
+      const featured = i === CONFIG.reasons.length - 1;
       const el = document.createElement('div');
-      el.className = 'flip reveal';
+      el.className = 'flip reveal' + (featured ? ' is-featured' : '');
       el.style.setProperty('--delay', `${(i % 4) * 0.08}s`);
+      el.style.setProperty('--r', meta.r);
+      el.style.setProperty('--wash', meta.wash);
+      el.style.setProperty('--wash-deep', meta.deep);
       el.innerHTML = `
         <div class="flip-inner">
-          <div class="flip-face flip-front"><span class="emoji" style="animation-delay:${-i * 0.5}s">${r.emoji}</span><h4>${r.title}</h4></div>
+          <div class="flip-face flip-front">
+            ${featured ? '<span class="ribbon">Forever</span>' : ''}
+            <span class="reason-num">${String(i + 1).padStart(2, '0')}</span>
+            <i class="corner-heart" aria-hidden="true">♥</i>
+            <div class="medal"><span>${r.emoji}</span></div>
+            <h4>${r.title}</h4>
+            <p class="reason-en">${meta.en}</p>
+            <div class="reason-line" aria-hidden="true"><i>♥</i></div>
+          </div>
           <div class="flip-face flip-back">${r.text}</div>
         </div>`;
       el.addEventListener('click', () => el.classList.toggle('flipped'));
@@ -699,13 +771,41 @@
   function initHeartButton() {
     const btn = $('#heart-btn'), panel = $('#heart-panel');
     const countEl = $('#heart-count'), msgEl = $('#heart-msg');
+    const fillEl = $('#level-fill'), textEl = $('#level-text');
+    const todayEl = $('#stat-today'), comboEl = $('#stat-combo'), levelEl = $('#stat-level');
     const symbols = ['💗', '💖', '💕', '❤️', '💘', '💝'];
-    let count = 0;
+    const LEVEL_NAMES = ['初见心动', '潜心欢喜', '情有独钟', '心有灵犀', '白首不离', '此生不换'];
+    const LEVEL_STEP = 100;
+    const levelOf = n => Math.floor(n / LEVEL_STEP) + 1;
+
+    let count = 0, combo = 0, maxCombo = 0, lastClick = 0;
+
+    function updateStats() {
+      const lv = levelOf(count);
+      const rest = count % LEVEL_STEP;
+      if (fillEl) fillEl.style.width = rest + '%';
+      if (textEl) {
+        textEl.innerHTML = lv >= LEVEL_NAMES.length
+          ? `已达最高等级「${LEVEL_NAMES[LEVEL_NAMES.length - 1]}」`
+          : `再积累 <b>${LEVEL_STEP - rest}</b> 分，升级为「${LEVEL_NAMES[lv]}」`;
+      }
+      if (todayEl) todayEl.textContent = count;
+      if (comboEl) comboEl.textContent = maxCombo;
+      if (levelEl) levelEl.textContent = 'Lv.' + Math.min(lv, LEVEL_NAMES.length);
+    }
+
     btn.addEventListener('click', () => {
+      const now = performance.now();
+      combo = now - lastClick < 1200 ? combo + 1 : 1;
+      lastClick = now;
+      if (combo > maxCombo) maxCombo = combo;
+
       count++;
       countEl.textContent = count;
       if (!reduceMotion) { countEl.classList.remove('tick'); void countEl.offsetWidth; countEl.classList.add('tick'); }
       msgEl.textContent = CONFIG.heartMessages[(count - 1) % CONFIG.heartMessages.length];
+      updateStats();
+
       if (reduceMotion) return;
       const r = btn.getBoundingClientRect();
       const pr = panel.getBoundingClientRect();
@@ -724,23 +824,164 @@
         panel.appendChild(s);
       }
     });
+
+    updateStats();
   }
 
   /* ---------- 心动签 ---------- */
   function buildFortunes() {
     const wrap = $('#fortune-cards');
+    const modal = $('#fortuneModal');
+    const stage = $('#fortuneStage');
+    const stageInner = $('#fortuneStageInner');
+    const stageText = $('#fortuneStageText');
+    const TILT = [-2.2, 1.6, -1.2, 2, -1.8, 1.2];
+    const BADGES = ['上上签', '上签', '中签', '心动签', '幸运签', '好签'];
+    const ICONS = ['💗', '🔮', '✨', '🍀', '🌙', '🎬', '🍰', '💞', '🌸', '🍬'];
+    let active = null, activeTilt = 0, closing = false;
+
+    const backHTML = (badge, icon, text) => `
+      <span class="fortune-badge">${badge}</span>
+      <span class="fortune-icon">${icon}</span>
+      <p class="fortune-text">${text}</p>
+      <span class="fortune-divider" aria-hidden="true">♥</span>
+      <span class="fortune-script">Lucky Day</span>`;
+
+    function open(card, text, tilt) {
+      if (closing) return;
+      active = card;
+      activeTilt = tilt;
+      stageText.innerHTML = backHTML(card.dataset.badge || '上上签', card.dataset.icon || '💗', text);
+      stageInner.classList.remove('is-flipped');
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('fortune-open');
+
+      // 让放大后的卡片居中在「今日心动签」这块大卡片上
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      let ox = 0, oy = 0;
+      const panelEl = card.closest('.panel');
+      if (panelEl) {
+        panelEl.classList.add('fortune-blurred');
+        const pr = panelEl.getBoundingClientRect();
+        ox = pr.left + pr.width / 2 - vw / 2;
+        oy = pr.top + pr.height / 2 - vh / 2;
+        const maxX = Math.max(0, (vw - stage.offsetWidth) / 2 - 16);
+        const maxY = Math.max(0, (vh - stage.offsetHeight) / 2 - 16);
+        ox = Math.max(-maxX, Math.min(maxX, ox));
+        oy = Math.max(-maxY, Math.min(maxY, oy));
+      }
+
+      const src = card.getBoundingClientRect();
+      const sx = src.width / stage.offsetWidth;
+      const sy = src.height / stage.offsetHeight;
+      const t0x = src.left + src.width / 2 - vw / 2;
+      const t0y = src.top + src.height / 2 - vh / 2;
+
+      stage.style.transition = 'none';
+      stage.style.transform = `translate(${t0x}px, ${t0y}px) scale(${sx}, ${sy}) rotate(${tilt}deg)`;
+      stage.style.opacity = '0.7';
+      void stage.offsetWidth;
+      requestAnimationFrame(() => {
+        stage.style.transition = '';
+        stage.style.transform = `translate(${ox}px, ${oy}px) scale(1) rotate(0deg)`;
+        stage.style.opacity = '1';
+        // 直接翻过来，显示签文
+        stageInner.classList.add('is-flipped');
+      });
+    }
+
+    function close() {
+      if (!active || closing) return;
+      closing = true;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const src = active.getBoundingClientRect();
+      const panelEl = active.closest('.panel');
+      const sx = src.width / stage.offsetWidth;
+      const sy = src.height / stage.offsetHeight;
+      const t1x = src.left + src.width / 2 - vw / 2;
+      const t1y = src.top + src.height / 2 - vh / 2;
+
+      stage.style.transition = '';
+      stage.style.transform = `translate(${t1x}px, ${t1y}px) scale(${sx}, ${sy}) rotate(${activeTilt}deg)`;
+      stage.style.opacity = '1';
+      setTimeout(() => {
+        // 回到原位后保持翻面，显示签文
+        if (active) active.classList.add('revealed');
+        if (panelEl) panelEl.classList.remove('fortune-blurred');
+        document.body.classList.remove('fortune-open');
+        // 先无过渡地隐藏浮层，避免复位时卡片在屏幕中央闪一下
+        modal.style.transition = 'none';
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+        void modal.offsetWidth;
+        modal.style.transition = '';
+        stage.style.transition = 'none';
+        stage.style.transform = '';
+        stage.style.opacity = '';
+        stageInner.classList.remove('is-flipped');
+        void stage.offsetWidth;
+        stage.style.transition = '';
+        closing = false;
+        active = null;
+      }, 560);
+    }
+
     function render() {
       wrap.innerHTML = '';
-      CONFIG.fortunes.forEach(f => {
+      const shuffle = arr => arr.slice().sort(() => Math.random() - 0.5);
+      const badges = shuffle(BADGES);
+      const icons = shuffle(ICONS);
+      CONFIG.fortunes.forEach((f, i) => {
+        const tilt = TILT[i % TILT.length];
+        const badge = badges[i % badges.length];
+        const icon = icons[i % icons.length];
         const c = document.createElement('div');
         c.className = 'fortune';
-        c.innerHTML = `<div class="fortune-inner"><div class="fortune-face fortune-front">?</div><div class="fortune-face fortune-back">${f}</div></div>`;
-        c.addEventListener('click', () => c.classList.add('flipped'));
+        c.style.setProperty('--r', tilt + 'deg');
+        c.dataset.badge = badge;
+        c.dataset.icon = icon;
+        c.innerHTML = `
+          <div class="fortune-inner">
+            <div class="fortune-face fortune-front">
+              <span class="corner tl">♥</span>
+              <span class="corner tr">♥</span>
+              <span class="corner bl">♥</span>
+              <span class="corner br">♥</span>
+              <span class="emblem">?</span>
+              <span class="flourish">Lucky</span>
+            </div>
+            <div class="fortune-face fortune-back">${backHTML(badge, icon, f)}</div>
+          </div>`;
+        c.addEventListener('click', () => open(c, f, tilt));
         wrap.appendChild(c);
       });
     }
+
     render();
-    $('#fortune-reset').addEventListener('click', render);
+    $('#fortune-reset').addEventListener('click', () => {
+      if (active) {
+        const panelEl = active.closest('.panel');
+        if (panelEl) panelEl.classList.remove('fortune-blurred');
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('fortune-open');
+        stage.style.transition = 'none';
+        stage.style.transform = '';
+        stage.style.opacity = '';
+        stageInner.classList.remove('is-flipped');
+        void stage.offsetWidth;
+        stage.style.transition = '';
+        active = null;
+        closing = false;
+      }
+      render();
+    });
+    $('#fortuneClose').addEventListener('click', close);
+    modal.addEventListener('click', e => { if (e.target === modal) close(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
   }
 
   /* ---------- 默契测试 ---------- */
@@ -1337,7 +1578,38 @@
   fillText();
   initCounter();
   initTypewriter();
+  /* ---------- 漂浮爱心 ---------- */
+  function initFloatingHearts() {
+    const box = $('#heartsBg');
+    if (!box) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const colors = ['#f2668b', '#ffb7cd', '#dd4a76', '#e0a46a'];
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < 18; i++) {
+      const el = document.createElement('span');
+      const isDot = i % 4 === 3;
+      const size = isDot ? 5 + Math.random() * 6 : 12 + Math.random() * 16;
+      el.className = 'fh' + (isDot ? ' dot' : '');
+      el.textContent = isDot ? '' : '♥';
+      el.style.left = (Math.random() * 100).toFixed(2) + '%';
+      el.style.color = colors[i % colors.length];
+      if (isDot) {
+        el.style.width = size.toFixed(1) + 'px';
+        el.style.height = size.toFixed(1) + 'px';
+      } else {
+        el.style.fontSize = size.toFixed(1) + 'px';
+      }
+      el.style.setProperty('--o', (0.35 + Math.random() * 0.45).toFixed(2));
+      el.style.animationDuration = (16 + Math.random() * 14).toFixed(1) + 's';
+      el.style.animationDelay = (-Math.random() * 24).toFixed(1) + 's';
+      frag.appendChild(el);
+    }
+    box.appendChild(frag);
+  }
+
   initCanvas();
+  initFloatingHearts();
   initCursor();
   buildTimeline();
   buildGallery();
@@ -1383,6 +1655,7 @@
       overlay.classList.add('is-hidden');
       document.body.classList.remove('locked');
       if (mainEl) mainEl.classList.add('revealed');
+      window.dispatchEvent(new Event('love:unlocked'));
       if (typeof window.confetti === 'function') {
         window.confetti({
           particleCount: 120,
@@ -1436,7 +1709,7 @@
 
   /* ---------- 2. 星空背景 + 流星 ---------- */
   const skyCanvas = $('#sky-stars');
-  if (skyCanvas) {
+  if (skyCanvas && getComputedStyle(skyCanvas).display !== 'none') {
     const ctx = skyCanvas.getContext('2d');
     const world = skyCanvas.parentElement;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -1524,7 +1797,10 @@
   const scratch = $('#scratchCanvas');
   if (scratch) {
     const sctx = scratch.getContext('2d');
+    const CLEAR_AT = 2 / 3;
     let drawing = false;
+    let done = false;
+    let lastCheck = 0;
 
     const paint = () => {
       const w = scratch.offsetWidth;
@@ -1533,16 +1809,49 @@
       scratch.width = w;
       scratch.height = h;
       const grad = sctx.createLinearGradient(0, 0, w, h);
-      grad.addColorStop(0, '#2a2d37');
-      grad.addColorStop(1, '#3b2940');
+      grad.addColorStop(0, '#f8c7da');
+      grad.addColorStop(1, '#eeb3cd');
       sctx.globalCompositeOperation = 'source-over';
       sctx.fillStyle = grad;
       sctx.fillRect(0, 0, w, h);
       sctx.font = '12px "PingFang SC", "Microsoft YaHei", sans-serif';
-      sctx.fillStyle = '#a9b3c4';
+      sctx.fillStyle = '#a35a72';
       sctx.textAlign = 'center';
       sctx.textBaseline = 'middle';
       sctx.fillText('✨ 刮开涂层 查看隐藏心里话 ✨', w / 2, h / 2);
+      done = false;
+      drawing = false;
+      lastCheck = 0;
+      scratch.style.transition = '';
+      scratch.style.opacity = '';
+      scratch.style.pointerEvents = '';
+    };
+
+    const progress = () => {
+      const w = scratch.width;
+      const h = scratch.height;
+      if (!w || !h) return 0;
+      const data = sctx.getImageData(0, 0, w, h).data;
+      const step = 4;
+      let total = 0;
+      let cleared = 0;
+      for (let y = 0; y < h; y += step) {
+        for (let x = 0; x < w; x += step) {
+          total++;
+          if (data[(y * w + x) * 4 + 3] < 32) cleared++;
+        }
+      }
+      return total ? cleared / total : 0;
+    };
+
+    const reveal = () => {
+      if (done) return;
+      done = true;
+      drawing = false;
+      scratch.style.transition = 'opacity 0.45s ease';
+      scratch.style.opacity = '0';
+      scratch.style.pointerEvents = 'none';
+      setTimeout(() => sctx.clearRect(0, 0, scratch.width, scratch.height), 500);
     };
 
     paint();
@@ -1554,6 +1863,7 @@
     });
 
     const rub = e => {
+      if (done) return;
       const rect = scratch.getBoundingClientRect();
       sctx.globalCompositeOperation = 'destination-out';
       sctx.beginPath();
@@ -1561,16 +1871,30 @@
       sctx.fill();
     };
 
+    const maybeReveal = () => {
+      if (done) return;
+      const now = performance.now();
+      if (now - lastCheck < 120) return;
+      lastCheck = now;
+      if (progress() >= CLEAR_AT) reveal();
+    };
+
     scratch.addEventListener('pointerdown', e => {
+      if (done) return;
       drawing = true;
       rub(e);
       if (scratch.setPointerCapture) scratch.setPointerCapture(e.pointerId);
     });
     scratch.addEventListener('pointermove', e => {
-      if (drawing) rub(e);
+      if (!drawing) return;
+      rub(e);
+      maybeReveal();
     });
     ['pointerup', 'pointercancel', 'pointerleave'].forEach(type => {
-      scratch.addEventListener(type, () => { drawing = false; });
+      scratch.addEventListener(type, () => {
+        drawing = false;
+        maybeReveal();
+      });
     });
   }
 

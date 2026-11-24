@@ -4,30 +4,46 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>我们的小宇宙</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&family=Parisienne&family=Noto+Serif+SC:wght@400;600&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="css/style.css">
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" defer></script>
 </head>
-<body>
+<body class="locked">
+<div class="hearts-bg" id="heartsBg" aria-hidden="true"></div>
 <canvas id="bg-canvas" aria-hidden="true"></canvas>
 <div class="cursor-glow" id="cursor-glow" aria-hidden="true"></div>
 <audio id="bgm" src="audio/shenfen.flac" preload="none" loop></audio>
 
-<!-- 开场 · 心跳同频解锁 -->
+<!-- 开场 · 心跳同频解锁（信封） -->
 <div class="unlock-overlay" id="unlockOverlay">
-  <div class="unlock-inner">
-    <div class="unlock-heart">♥</div>
-    <h2 class="unlock-title">心跳同频 · 开启回忆</h2>
-    <p class="unlock-sub">长按下方按钮 3 秒 融合心率密钥</p>
-    <div class="hold-wrap">
-      <svg class="hold-ring" viewBox="0 0 100 100" aria-hidden="true">
-        <circle class="ring-bg" cx="50" cy="50" r="44"></circle>
-        <circle id="progressCircle" class="ring-fg" cx="50" cy="50" r="44" stroke-dasharray="276.46" stroke-dashoffset="276.46"></circle>
-      </svg>
-      <button class="hold-btn" id="unlockBtn" aria-label="长按三秒解锁">
-        <i class="hold-icon fa-solid fa-fingerprint" aria-hidden="true"></i>
-        <span class="hold-text" id="btnText">按住解锁</span>
-      </button>
+  <div class="env-scene">
+    <div class="env-halo"></div>
+    <div class="envelope" id="envelope">
+      <div class="env-back"></div>
+      <div class="env-flap"></div>
+
+      <div class="env-body">
+        <div class="unlock-heart">♥</div>
+        <p class="unlock-script">Beating as One</p>
+        <h2 class="unlock-title">心跳同频 · 开启回忆</h2>
+        <p class="unlock-sub">长按下方按钮 3 秒 融合心率密钥</p>
+      </div>
+
+      <div class="env-pocket"></div>
+
+      <div class="hold-wrap">
+        <svg class="hold-ring" viewBox="0 0 100 100" aria-hidden="true">
+          <circle class="ring-bg" cx="50" cy="50" r="44"></circle>
+          <circle id="progressCircle" class="ring-fg" cx="50" cy="50" r="44" stroke-dasharray="276.46" stroke-dashoffset="276.46"></circle>
+        </svg>
+        <button class="hold-btn" id="unlockBtn" aria-label="长按三秒解锁">
+          <i class="hold-icon fa-solid fa-fingerprint" aria-hidden="true"></i>
+          <span class="hold-text" id="btnText">按住解锁</span>
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -38,7 +54,7 @@
   <nav class="nav show" id="nav">
     <a href="#star-sky" class="nav-brand" aria-label="回到星空首屏">
       <span class="brand-dot"></span>
-      <span class="brand-text">ALWAYS &amp; FOREVER</span>
+      <span class="brand-text">Always &amp; Forever</span>
     </a>
     <div class="nav-links">
       <a href="#timeline">时光</a>
@@ -222,6 +238,25 @@
         <button class="heart-btn" id="heart-btn" aria-label="点一下送出爱心"><span>♥</span></button>
         <p class="heart-count"><span id="heart-count">0</span> 分爱意</p>
         <p class="heart-msg" id="heart-msg">点一下试试</p>
+        <div class="level-progress">
+          <div class="bar"><div class="bar-fill" id="level-fill"></div></div>
+          <p class="bar-text" id="level-text">再积累 <b>100</b> 分，升级为「潜心欢喜」</p>
+        </div>
+        <div class="mini-stats">
+          <div class="mini"><span class="v" id="stat-today">0</span><span class="k">今日点击</span></div>
+          <div class="mini"><span class="v" id="stat-combo">0</span><span class="k">最高连击</span></div>
+          <div class="mini"><span class="v" id="stat-level">Lv.1</span><span class="k">爱意等级</span></div>
+        </div>
+        <svg class="station-ecg" viewBox="0 0 400 46" aria-hidden="true">
+          <defs>
+            <linearGradient id="stationEcgGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#ffb0c8"></stop>
+              <stop offset="0.5" stop-color="#f2668b"></stop>
+              <stop offset="1" stop-color="#e0a46a"></stop>
+            </linearGradient>
+          </defs>
+          <path d="M0 24 H120 L132 10 L144 38 L156 16 L168 30 L180 24 H400"></path>
+        </svg>
       </div>
       <div class="panel reveal" style="--delay:.15s">
         <h3>今日心动签</h3>
@@ -272,6 +307,30 @@
     <button class="custom-btn" id="customSave">保存修改</button>
   </footer>
 </aside>
+
+<!-- 心动签放大查看 -->
+<div class="fortune-modal" id="fortuneModal" aria-hidden="true">
+  <div class="fortune-stage" id="fortuneStage">
+    <button class="fortune-close" id="fortuneClose" type="button" aria-label="关闭">✕</button>
+    <div class="fortune-inner" id="fortuneStageInner">
+      <div class="fortune-face fortune-front">
+        <span class="corner tl">♥</span>
+        <span class="corner tr">♥</span>
+        <span class="corner bl">♥</span>
+        <span class="corner br">♥</span>
+        <span class="emblem">?</span>
+        <span class="flourish">Lucky</span>
+      </div>
+      <div class="fortune-face fortune-back" id="fortuneStageText">
+        <span class="fortune-badge">上上签</span>
+        <span class="fortune-icon">💗</span>
+        <p class="fortune-text"></p>
+        <span class="fortune-divider" aria-hidden="true">♥</span>
+        <span class="fortune-script">Lucky Day</span>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="js/main.js"></script>
 </body>
