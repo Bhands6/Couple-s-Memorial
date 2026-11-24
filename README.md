@@ -4,6 +4,26 @@
 
 无构建步骤、无框架、无第三方 UI 依赖，直接用浏览器打开或部署到任意静态托管即可。
 
+## 预览
+
+| 开场解锁 | 星空首屏 |
+| :---: | :---: |
+| <img src="docs/screenshots/01-unlock.jpg" width="440"> | <img src="docs/screenshots/02-hero.jpg" width="440"> |
+
+| 故事轨迹 | 写给你的一封信 |
+| :---: | :---: |
+| <img src="docs/screenshots/03-story.jpg" width="440"> | <img src="docs/screenshots/04-letter.jpg" width="440"> |
+
+| 爱你的理由 | 我们的小游乐场 |
+| :---: | :---: |
+| <img src="docs/screenshots/05-reasons.jpg" width="440"> | <img src="docs/screenshots/06-playground.jpg" width="440"> |
+
+<p align="center">
+  <img src="docs/screenshots/07-quiz-footer.jpg" width="600" alt="默契大考验与页脚">
+</p>
+
+> 相册区块的 3D 立方体为实时交互效果，建议本地打开体验；截图为演示数据。
+
 ## 功能一览
 
 - **开场解锁**：长按 3 秒，进度环填满后礼花绽放，进入主页面
@@ -24,6 +44,7 @@ css/style.css        全部样式（含 3D 立方体、定制面板）
 js/main.js           配置、渲染与交互逻辑
 images/              相册照片 photo1–photo6
 audio/               背景音乐 shenfen.flac、UnderTree.flac
+docs/screenshots/    README 预览截图
 code_artifact.html   早期星空页原稿（当前未引用）
 README.md
 ```
