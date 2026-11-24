@@ -816,7 +816,8 @@ body.locked { overflow: hidden; }
   justify-content: center;
   padding: 24px;
   background:
-    radial-gradient(60% 50% at 50% 40%, rgba(80, 20, 60, 0.55), rgba(2, 2, 6, 0.96) 70%);
+    radial-gradient(circle 340px at 50% 34%, rgba(150, 35, 110, 0.42), rgba(6, 3, 9, 0.9) 66%),
+    #040407;
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   transition: opacity 0.9s ease, visibility 0.9s;
@@ -824,41 +825,41 @@ body.locked { overflow: hidden; }
 .unlock-overlay.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 .unlock-inner { text-align: center; max-width: 420px; }
 .unlock-heart {
-  width: 96px; height: 96px;
-  margin: 0 auto 28px;
+  width: 140px; height: 140px;
+  margin: 0 auto 26px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 40px;
+  font-size: 56px;
   color: var(--pink);
-  background: radial-gradient(circle at 35% 30%, rgba(255, 107, 157, 0.25), rgba(20, 10, 26, 0.9));
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 0 60px rgba(255, 77, 125, 0.35);
+  background: radial-gradient(circle at 38% 30%, rgba(255, 107, 157, 0.2), rgba(18, 10, 26, 0.96) 72%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 70px rgba(190, 60, 140, 0.45), 0 0 150px rgba(120, 30, 90, 0.32);
   animation: beat 2.4s ease-in-out infinite;
 }
 .unlock-title {
   font-family: var(--font-serif);
-  font-size: clamp(22px, 4vw, 32px);
+  font-size: clamp(24px, 3.2vw, 33px);
   font-weight: 400;
-  letter-spacing: 0.12em;
-  background: linear-gradient(90deg, #fecdd3, #f9a8d4, #e9d5ff);
+  letter-spacing: 0.1em;
+  background: linear-gradient(90deg, #ffffff, #ffe7f1 40%, #f9b8d8);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
-.unlock-sub { font-size: 13px; letter-spacing: 0.16em; color: #94a3b8; margin-bottom: 40px; }
+.unlock-sub { font-size: 14px; letter-spacing: 0.08em; color: #b9c0cb; margin-bottom: 46px; }
 .hold-wrap {
   position: relative;
-  width: 132px; height: 132px;
+  width: 112px; height: 112px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .hold-ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
-.ring-bg { fill: none; stroke: rgba(255, 255, 255, 0.12); stroke-width: 4; }
+.ring-bg { fill: none; stroke: rgba(255, 255, 255, 0.22); stroke-width: 4; }
 .ring-fg {
   fill: none;
   stroke: var(--pink);
@@ -872,25 +873,25 @@ body.locked { overflow: hidden; }
   z-index: 2;
   width: 88px; height: 88px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 117, 140, 0.45);
-  background: radial-gradient(circle at 40% 30%, rgba(255, 117, 140, 0.28), rgba(120, 30, 90, 0.35));
-  color: #ffd7e0;
+  border: 1px solid rgba(203, 82, 148, 0.6);
+  background: radial-gradient(circle at 44% 32%, rgba(126, 32, 94, 0.62), rgba(30, 8, 26, 0.97) 76%);
+  color: #f0a0c4;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 3px;
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
-  box-shadow: 0 12px 40px rgba(255, 77, 125, 0.25);
+  box-shadow: 0 0 44px rgba(255, 77, 125, 0.28), inset 0 0 28px rgba(255, 80, 140, 0.14);
   transition: transform 0.2s, box-shadow 0.3s, border-color 0.3s;
 }
-.hold-btn:hover { border-color: rgba(255, 117, 140, 0.9); box-shadow: 0 12px 50px rgba(255, 77, 125, 0.45); }
+.hold-btn:hover { border-color: rgba(240, 130, 185, 0.95); box-shadow: 0 0 54px rgba(255, 77, 125, 0.42), inset 0 0 30px rgba(255, 80, 140, 0.2); }
 .hold-btn:active { transform: scale(0.95); }
-.hold-icon { font-size: 26px; line-height: 1; animation: float 3s ease-in-out infinite; }
-.hold-text { font-size: 10px; letter-spacing: 0.08em; color: rgba(255, 200, 215, 0.85); }
+.hold-icon { font-size: 28px; line-height: 1; animation: float 3s ease-in-out infinite; }
+.hold-text { font-size: 10.5px; letter-spacing: 0.06em; color: #ee93bb; }
 
 /* ---------- 星空世界 ---------- */
 .sky-world {
