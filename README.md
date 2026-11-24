@@ -85,7 +85,7 @@ python -m http.server 5173
 
 ## 背景音乐
 
-- 默认曲目：`audio/UnderTree.flac`，约 41MB；仓库另附 `audio/shenfen.flac`（《身份》— 艾岩）
+- 默认曲目：`audio/UnderTree.flac`（《山楂树之恋》— 程佳佳），约 41MB；仓库另附 `audio/shenfen.flac`（《身份》— 艾岩）
 - 解锁时自动尝试播放，文件缺失或不可播放时自动改用内置合成轻音乐
 - 右上角 ♪ 点击为暂停/继续（保留播放进度）
 - 更换方式：替换文件 / 修改 `js/main.js` 的 `CONFIG.bgmSrc` / 在定制面板填入新的音频地址
