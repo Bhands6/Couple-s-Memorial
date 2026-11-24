@@ -138,8 +138,8 @@
       savedSettings.photos.forEach((photo, i) => {
         const target = CONFIG.photos[i];
         if (!target || !photo) return;
-        if (photo.caption) target.caption = photo.caption;
-        if (photo.emoji) target.emoji = photo.emoji;
+        if (typeof photo.caption === 'string') target.caption = photo.caption;
+        if (typeof photo.emoji === 'string') target.emoji = photo.emoji;
         if (photo.src) target.src = photo.src;
         // 旧版本保存的记录里没有图片，不能因此把默认照片删掉
         else if (!legacyPhotos) delete target.src;
@@ -1346,8 +1346,8 @@
     }
 
     data.photos = CONFIG.photos.map((p, i) => ({
-      caption: val(`photo${i}.caption`) || p.caption,
-      emoji: val(`photo${i}.emoji`) || p.emoji,
+      caption: val(`photo${i}.caption`) ?? p.caption,
+      emoji: val(`photo${i}.emoji`) ?? p.emoji,
       src: (i in pendingPhotos) ? pendingPhotos[i] : (p.src || ''),
     }));
     data.reasons = CONFIG.reasons.map((r, i) => ({
