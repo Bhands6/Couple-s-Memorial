@@ -47,7 +47,6 @@ js/main.js           配置、渲染与交互逻辑
 images/              相册照片 photo1–photo6
 audio/               背景音乐 UnderTree.flac（默认）、shenfen.flac
 docs/screenshots/    预览图 unlock.png、hero.png
-code_artifact.html   早期星空页原稿（当前未引用）
 README.md
 ```
 
