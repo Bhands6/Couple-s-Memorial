@@ -85,7 +85,7 @@
     ],
 
     // 背景音乐地址：audio/xxx.mp3、audio/xxx.flac 或在线直链；留空则播放内置轻音乐
-    bgmSrc: 'audio/shenfen.flac',
+    bgmSrc: 'audio/UnderTree.flac',
   };
 
   // ============================================================
@@ -126,10 +126,9 @@
     if (Array.isArray(savedSettings.taglines) && savedSettings.taglines.length) CONFIG.taglines = savedSettings.taglines;
     if (savedSettings.letter) CONFIG.letter = savedSettings.letter;
     if (typeof savedSettings.bgmSrc === 'string') {
-      // 兼容旧设置里记录的 mp3 路径，改用现在的 flac 文件
-      CONFIG.bgmSrc = savedSettings.bgmSrc === 'audio/shenfen.mp3'
-        ? 'audio/shenfen.flac'
-        : savedSettings.bgmSrc;
+      // 兼容旧设置里记录的默认曲目，改用现在的默认文件
+      const legacyBgm = savedSettings.bgmSrc === 'audio/shenfen.mp3' || savedSettings.bgmSrc === 'audio/shenfen.flac';
+      CONFIG.bgmSrc = legacyBgm ? 'audio/UnderTree.flac' : savedSettings.bgmSrc;
     }
     if (savedSettings.texts) {
       Object.keys(savedSettings.texts).forEach(key => setEditText(key, savedSettings.texts[key]));
@@ -1426,8 +1425,8 @@
     if (!btn) return;
     const playing = musicPlaying();
     btn.classList.toggle('active', playing);
-    if (fallbackAudio) btn.title = '内置轻音乐（未找到《身份》音频）';
-    else btn.title = playing ? '暂停背景音乐《身份》— 艾岩' : '播放背景音乐《身份》— 艾岩';
+    if (fallbackAudio) btn.title = '内置轻音乐（未找到 UnderTree 音频）';
+    else btn.title = playing ? '暂停背景音乐 UnderTree' : '播放背景音乐 UnderTree';
     if (playing) startBpm();
     else stopBpm();
   }

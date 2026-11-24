@@ -45,7 +45,7 @@ index.html           页面结构
 css/style.css        全部样式（含 3D 立方体、定制面板）
 js/main.js           配置、渲染与交互逻辑
 images/              相册照片 photo1–photo6
-audio/               背景音乐 shenfen.flac、UnderTree.flac
+audio/               背景音乐 UnderTree.flac（默认）、shenfen.flac
 docs/screenshots/    预览图 unlock.png、hero.png
 code_artifact.html   早期星空页原稿（当前未引用）
 README.md
@@ -85,7 +85,7 @@ python -m http.server 5173
 
 ## 背景音乐
 
-- 默认曲目：`audio/shenfen.flac`（《身份》— 艾岩），约 27MB；仓库另附 `audio/UnderTree.flac`
+- 默认曲目：`audio/UnderTree.flac`，约 41MB；仓库另附 `audio/shenfen.flac`（《身份》— 艾岩）
 - 解锁时自动尝试播放，文件缺失或不可播放时自动改用内置合成轻音乐
 - 右上角 ♪ 点击为暂停/继续（保留播放进度）
 - 更换方式：替换文件 / 修改 `js/main.js` 的 `CONFIG.bgmSrc` / 在定制面板填入新的音频地址
@@ -108,7 +108,7 @@ python -m http.server 5173
 ## 常见问题
 
 - **改了照片/文字没生效**：先 Ctrl + F5；仍不变则说明浏览器里有旧的自定义记录，⚙ →「恢复默认」或清除站点 `localStorage` 后刷新
-- **没有音乐**：确认 `audio/shenfen.flac` 存在且路径正确；本地直接双击打开时部分浏览器会限制本地音频，建议用本地服务器预览
+- **没有音乐**：确认 `audio/UnderTree.flac` 存在且路径正确；本地直接双击打开时部分浏览器会限制本地音频，建议用本地服务器预览
 - **立方体没有小方块**：小方块在拼合完成后才淡入，外层照片为半透明以露出内部；若外层过于透明/不透明，可调整 `css/style.css` 中 `.photo-cube-stage.assembled .pc-photo` 的 `opacity`
 - **心动签怎么收回**：点右上角 ✕、点空白处或按 Esc 都会收回；收回后原位那张牌保持翻开，点「重新抽签」才会全部盖回背面
 - **签级和图标每次都不同**：签级（上上签 / 上签 / 中签…）和圆形图标是随机装饰，不影响签文内容
