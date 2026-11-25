@@ -48,16 +48,25 @@ images/              相册照片 photo1–photo6
 audio/               背景音乐 UnderTree.flac（默认）、shenfen.flac
 docs/screenshots/    预览图 unlock.png、hero.png
 config-generator.html  批量配置工具（填表导出新 main.js）
+serve.py              本地预览服务器（带正确 MIME，3D 花束需要）
+js/rose.js            2D 点阵玫瑰（3D 加载失败时的降级后备）
+js/rose3d.js          Three.js 3D 玫瑰花束
+js/vendor/            Three.js 本地依赖（无需 CDN）
+models/               CC0 玫瑰花束模型 rose-bouquet.glb + 授权存证
 README.md
 ```
 
 ## 本地运行
 
-直接双击 `index.html` 可查看大部分效果；涉及音频加载时建议起本地服务器：
+推荐起本地服务器查看完整效果（含 3D 玫瑰花束、音频）：
 
 ```bash
-python -m http.server 5173
+py -3 serve.py          # 默认端口 5173；也可 py -3 serve.py 8080
 ```
+
+> **为什么不用 `python -m http.server`？** 它把 `.js` 当 `text/plain` 返回，浏览器会拒绝加载 ES module，导致 3D 玫瑰花束静默回退成 2D 点阵版。`serve.py` 修正了 JS/GLB 的 MIME 类型，本地也能正常显示 3D。另外本机的 `python` 指向 Python 2，务必用 `py -3`。
+
+双击 `index.html` 也能看大部分效果，但 3D 花束与音频可能受浏览器本地文件限制而失效，因此建议用上面的方式。
 
 访问 http://127.0.0.1:5173 。修改代码后按 Ctrl + F5 强制刷新，避免浏览器缓存。
 
