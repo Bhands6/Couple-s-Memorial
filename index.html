@@ -110,6 +110,19 @@
       <div class="scroll-hint"><span class="mouse"></span>向下滑动</div>
     </header>
 
+    <!-- ==================== 送你一朵玫瑰花 ==================== -->
+    <section class="sky-section rose-section" id="rose">
+      <h2 class="section-title reveal"><span>送你一朵玫瑰花</span></h2>
+      <p class="section-sub reveal">这一朵，只为你开</p>
+      <div class="rose-stage reveal">
+        <div class="rose-frame">
+          <canvas id="roseCanvas" width="640" height="480" aria-label="一朵缓缓旋转的 3D 玫瑰花"></canvas>
+          <div class="rose-loading" id="roseLoading">玫瑰正在绽放…</div>
+        </div>
+        <p class="rose-tip">轻触拖动，可以转动这朵玫瑰</p>
+      </div>
+    </section>
+
     <!-- 我们的故事轨迹（星空卡片 + 时光机样式） -->
     <section class="sky-section" id="timeline">
       <h2 class="section-title reveal"><span>我们的故事轨迹</span></h2>
@@ -334,5 +347,6 @@
 </div>
 
 <script src="js/main.js"></script>
+<script src="js/rose.js"></script>
 </body>
 </html>

@@ -2799,3 +2799,59 @@ body.fortune-open { overflow: hidden; }
   .fortune-stage .fortune-icon { width: 36px; height: 36px; margin: 10px 0 8px; font-size: 18px; }
 }
 
+/* ---------- 送你一朵玫瑰花 ---------- */
+.rose-section { padding-top: 20px; padding-bottom: 20px; }
+.rose-stage { display: flex; flex-direction: column; align-items: center; }
+.rose-frame {
+  position: relative;
+  width: min(680px, 100%);
+  aspect-ratio: 4 / 3;
+  border-radius: 24px;
+  overflow: hidden;
+  padding: 14px;
+  background:
+    radial-gradient(ellipse at 50% 42%, #3a1526 0%, #210c18 55%, #120810 100%);
+  border: 1px solid rgba(255, 170, 200, 0.28);
+  box-shadow:
+    0 24px 60px rgba(90, 20, 50, 0.35),
+    inset 0 0 60px rgba(255, 107, 157, 0.08);
+}
+.rose-frame::after {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  border-radius: 14px;
+  pointer-events: none;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.35);
+}
+.rose-frame canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 14px;
+  background: transparent;
+  cursor: grab;
+  touch-action: pan-y;
+}
+.rose-frame canvas:active { cursor: grabbing; }
+.rose-loading {
+  position: absolute;
+  inset: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pink-soft);
+  font-family: var(--font-serif);
+  font-size: 15px;
+  letter-spacing: 0.2em;
+  border-radius: 14px;
+  background: #1a0a14;
+}
+.rose-loading[hidden] { display: none; }
+.rose-tip { margin-top: 16px; color: var(--muted); font-size: 13px; letter-spacing: 0.08em; }
+@media (max-width: 560px) {
+  .rose-frame { width: 100%; border-radius: 18px; padding: 8px; }
+  .rose-frame::after, .rose-loading { inset: 8px; }
+  .rose-tip { font-size: 12px; }
+}
+
