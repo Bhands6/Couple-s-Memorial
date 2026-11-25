@@ -20,18 +20,11 @@
   const rosesize = 500;
   const h = -250;
 
-  // ===== 视觉旋钮：觉得花不够明显就调这几个（改完 Ctrl+F5 刷新） =====
-  const PETAL_DOT = 2;       // 花瓣点边长：1=细密 2=饱满 3=很粗（茎叶始终为 1）
-  const PETAL_LIFT = 30;     // 花瓣提亮：0=原色 30=明显变亮 50=很亮
-  const ROSE_SCALE = 1.06;   // 整体缩放：1=原尺寸 1.1=大 10%
-  const ROSE_SHIFT_Y = -8;   // 垂直微调：负值上移，正值下移（像素）
-  // ================================================================
-
   // 原版 50 万点在手机上会卡死，按设备能力分级
   const lowPower = window.innerWidth < 720 ||
     (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
     (navigator.deviceMemory && navigator.deviceMemory <= 4);
-  const numPoints = lowPower ? 100000 : 280000;
+  const numPoints = lowPower ? 70000 : 180000;
 
   let rotationAngle = 0;
   const bloomFactor = 1.0;
@@ -140,32 +133,23 @@
     data.fill(0);
     zBuffer.fill(Infinity);
     const shown = Math.floor(points.length * Math.min(appearance, 1));
-    const cx = W / 2;
-    const cy = H / 2 + ROSE_SHIFT_Y;
     for (let i = 0; i < shown; i++) {
       const p = points[i];
       const dot = calc(p.a, p.b, p.c, rotationAngle, bloomFactor);
       if (!dot) continue;
       const z = dot.z;
       if (z <= 0) continue;
-      const scale = (rosesize / z) * ROSE_SCALE;
-      const px = Math.round(dot.x * scale + cx);
-      const py = Math.round(dot.y * scale + cy);
+      const scale = rosesize / z;
+      const px = Math.round(dot.x * scale + W / 2);
+      const py = Math.round(dot.y * scale + H / 2);
       if (px < 0 || px >= W || py < 0 || py >= H) continue;
       const idx = py * W + px;
       if (z >= zBuffer[idx]) continue;
       zBuffer[idx] = z;
 
-      // 花瓣点取亮玫粉，茎叶保留原色；c>=60 是茎、37<c<60 是叶
-      const isPetal = p.c < 32;
-      let r = ~(dot.r * h) & 0xFF;
-      let g = ~(dot.g * h) & 0xFF;
-      let b = ~(dot.r * dot.r * -80) & 0xFF;
-      if (isPetal) {
-        r = Math.min(255, r + PETAL_LIFT);
-        g = Math.min(255, g + Math.round(PETAL_LIFT * 0.3));
-        b = Math.min(255, Math.round(b * 1.8) + PETAL_LIFT);
-      }
+      const r = ~(dot.r * h) & 0xFF;
+      const g = ~(dot.g * h) & 0xFF;
+      const b = ~(dot.r * dot.r * -80) & 0xFF;
       let alpha = 255;
       if (appearance < 1) {
         const t = (appearance - (i / points.length) * 0.5) * 2;
@@ -176,26 +160,6 @@
       data[pi + 1] = g;
       data[pi + 2] = b;
       data[pi + 3] = alpha;
-
-      // 花瓣点加粗为 PETAL_DOT×PETAL_DOT，提升视觉密度（z-buffer 用同一个 z）
-      if (isPetal && PETAL_DOT > 1) {
-        for (let dy = 0; dy < PETAL_DOT; dy++) {
-          const yy = py + dy;
-          if (yy < 0 || yy >= H) continue;
-          for (let dx = 1; dx < PETAL_DOT; dx++) {
-            const xx = px + dx;
-            if (xx < 0 || xx >= W) continue;
-            const j = yy * W + xx;
-            if (z >= zBuffer[j]) continue;
-            zBuffer[j] = z;
-            const qi = j * 4;
-            data[qi] = r;
-            data[qi + 1] = g;
-            data[qi + 2] = b;
-            data[qi + 3] = alpha;
-          }
-        }
-      }
     }
     ctx.putImageData(imageData, 0, 0);
     if (loading) loading.hidden = true;
