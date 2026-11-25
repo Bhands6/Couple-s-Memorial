@@ -24,7 +24,7 @@
   const lowPower = window.innerWidth < 720 ||
     (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
     (navigator.deviceMemory && navigator.deviceMemory <= 4);
-  const numPoints = lowPower ? 70000 : 180000;
+  const numPoints = lowPower ? 40000 : 100000;
 
   let rotationAngle = 0;
   const bloomFactor = 1.0;
