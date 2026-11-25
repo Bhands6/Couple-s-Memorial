@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="css/style.css">
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" defer></script>
+<script src="js/rose.js" defer></script>
 </head>
 <body class="locked">
 <div class="hearts-bg" id="heartsBg" aria-hidden="true"></div>
@@ -109,6 +110,36 @@
       </div>
       <div class="scroll-hint"><span class="mouse"></span>向下滑动</div>
     </header>
+
+    <!-- ==================== 送你一朵玫瑰花 ==================== -->
+    <section class="rose-section" id="rose">
+      <div class="rose-section-head reveal">
+        <div class="rose-head-row">
+          <i class="rose-h-side fa-solid fa-heart" aria-hidden="true"></i>
+          <h2 class="rose-title">送你一朵玫瑰花</h2>
+          <i class="rose-h-side fa-solid fa-heart" aria-hidden="true"></i>
+        </div>
+        <span class="rose-script">A Rose, Just for You</span>
+        <p class="rose-sub">这一朵，只为你开</p>
+      </div>
+
+      <div class="rose-stage-wrap reveal">
+        <div class="rose-stage" id="roseStage">
+          <div class="rose-aura"></div>
+          <div class="rose-shadow"></div>
+          <canvas id="roseCanvas" role="img" aria-label="一朵缓缓旋转的玫瑰花"></canvas>
+          <div class="rose-tag"><i class="fa-solid fa-heart" aria-hidden="true"></i> Forever in Bloom</div>
+        </div>
+        <div class="rose-stage-foot">
+          <span class="rose-hint"><i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i>它正为你缓缓旋转</span>
+        </div>
+      </div>
+
+      <p class="rose-footer-line">
+        我把整个春天，都装进了这一朵里
+        <small>For you, always in bloom.</small>
+      </p>
+    </section>
 
     <!-- 我们的故事轨迹（星空卡片 + 时光机样式） -->
     <section class="sky-section" id="timeline">
