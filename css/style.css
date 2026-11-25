@@ -2828,6 +2828,10 @@ body.fortune-open { overflow: hidden; }
   touch-action: pan-y;
 }
 .rose-frame canvas:active { cursor: grabbing; }
+/* 3D 模式：显示 Three.js 画布，隐藏 2D 点阵画布 */
+.rose-frame #rose3dCanvas { display: none; }
+.rose-frame.rose-3d-active #rose3dCanvas { display: block; }
+.rose-frame.rose-3d-active #roseCanvas { display: none; }
 .rose-loading {
   position: absolute;
   inset: 14px;
